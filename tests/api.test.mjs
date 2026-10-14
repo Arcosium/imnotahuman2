@@ -25,6 +25,15 @@ test('HTTP 인증, 시연 격리, 권한 상승 방지, 동시 요청과 시연 
  }
  assert.equal(g.phase,'ended');assert.equal(g.days,3);assert.equal(g.usage.costUsd,0);assert.ok(g.usage.fallbacks>0);assert.equal((await req('game',null,b.cookie)).body.game.phase,'report');
  const signup=await req('register',{username:'ordinary_player',password});assert.equal(signup.status,201);assert.equal((await req('game/start',{},signup.cookie)).body.game.days,7);assert.equal((await req('game/start',{mask:'gambler'},signup.cookie)).status,409);
+
+ // A shared demo account must not exhaust one global start quota at an event.
+ for(let i=0;i<22;i++){const fresh=await req('login',{username:'demo',password});assert.equal(fresh.status,200);assert.equal((await req('game/start',{},fresh.cookie)).status,200);}
+ // Export is subject to the same archive projection as the game endpoint.
+ const fixture=new Store(dir),bu=fixture.resolve(b.cookie.split('=')[1]),bg=fixture.game(bu.owner);bg.day=2;bg.records.push({id:'TEST2',day:2,type:'report',text:'fixture'});fixture.save(bu.owner,bg);fixture.db.close();
+ assert.ok((await req('records/export',null,b.cookie)).body.game.records.every(r=>r.day===2));
+ const invalidPassword=randomBytes(16).toString('hex');
+ for(let i=0;i<15;i++)assert.equal((await req('login',{username:'demo',password:invalidPassword})).status,401);
+ assert.equal((await req('login',{username:'demo',password:invalidPassword})).status,429);
  await req('logout',{},a.cookie);assert.equal((await req('game',null,a.cookie)).status,401);
  }finally{child.kill('SIGTERM');await new Promise(r=>child.on('exit',r));rmSync(dir,{recursive:true,force:true});}
 });
