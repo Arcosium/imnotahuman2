@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data
+.env
+.env.*
+!.env.example
+_workspace/
+*.log
+public/assets/
