@@ -8,23 +8,24 @@ import {randomUUID} from 'node:crypto';
 import {Store,kstDay,hashToken} from './store.mjs';
 import {GameAI} from './ai.mjs';
 import * as engine from './engine.mjs';
-import {COUNCIL,MODULES,MASKS,PHASE_LABELS} from './content.mjs';
+import {COUNCIL,MODULES,MASKS,PHASE_LABELS,ZONES} from './content.mjs';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const dataDir=resolve(process.env.DATA_DIR||join(root,'data'));
 const store=new Store(dataDir);const ai=new GameAI({dataDir,recordUsage:(...args)=>store.recordUsage(...args),available:()=>store.dayCost()<Number(process.env.DAILY_AI_BUDGET_USD||5)});
 const app=express();const locks=new Set();let active=0;
 app.disable('x-powered-by');app.set('trust proxy','loopback');
-app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'","'unsafe-inline'"],imgSrc:["'self'","data:"],fontSrc:["'self'"],connectSrc:["'self'"],frameAncestors:["'none'"]}},crossOriginEmbedderPolicy:false}));
+const helmetOptions={contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'","'unsafe-inline'"],imgSrc:["'self'","data:"],fontSrc:["'self'"],connectSrc:["'self'"],frameAncestors:["'none'"],upgradeInsecureRequests:null}},crossOriginEmbedderPolicy:false};
+app.use((req,res,next)=>helmet({...helmetOptions,hsts:req.secure?undefined:false})(req,res,next));
 app.use(express.json({limit:'12kb'}));app.use(cookieParser());
-app.use('/api',(req,res,next)=>{res.setHeader('Cache-Control','no-store');if(req.method!=='GET'){const origin=req.get('origin');const allowed=new Set(['https://imnotahuman2.ai-ve.uk',`http://127.0.0.1:${process.env.PORT||8682}`,'http://localhost:5173','http://127.0.0.1:5173']);if(origin&&!allowed.has(origin))return res.status(403).json({error:'허용되지 않은 요청 출처입니다.'});if(req.get('sec-fetch-site')==='cross-site')return res.status(403).json({error:'다른 사이트에서 보낸 요청은 허용되지 않습니다.'});}next();});
+app.use('/api',(req,res,next)=>{res.setHeader('Cache-Control','no-store');if(req.method!=='GET'){const origin=req.get('origin');const allowed=new Set(['https://imnotahuman2.ai-ve.uk',`http://127.0.0.1:${process.env.PORT||8682}`,`http://127.0.0.1.sslip.io:${process.env.PORT||8682}`,'http://localhost:5173','http://127.0.0.1:5173']);if(origin&&!allowed.has(origin))return res.status(403).json({error:'허용되지 않은 요청 출처입니다.'});if(req.get('sec-fetch-site')==='cross-site')return res.status(403).json({error:'다른 사이트에서 보낸 요청은 허용되지 않습니다.'});}next();});
 const asyncRoute=fn=>(req,res,next)=>Promise.resolve(fn(req,res)).catch(next);
 const ip=req=>hashToken(req.get('cf-connecting-ip')||req.ip||'unknown');
 const auth=(req,res,next)=>{req.user=store.resolve(req.cookies.inh2_session);if(!req.user)return res.status(401).json({error:'로그인이 필요합니다.'});next();};
 const safeUser=u=>({username:u.username,role:u.role,profile:store.profile(store.userById(u.id))});
 const authSchema=z.object({username:z.string().regex(/^[a-zA-Z0-9_]{3,24}$/),password:z.string().min(8).max(128)}).strict();
 app.get('/api/health',(req,res)=>res.json({ok:true,ai:{mode:ai.status.mode},version:'1.0.0'}));
-app.get('/api/catalog',(req,res)=>res.json({council:COUNCIL,modules:MODULES,masks:MASKS,phases:PHASE_LABELS}));
+app.get('/api/catalog',(req,res)=>res.json({council:COUNCIL,modules:MODULES,masks:MASKS,phases:PHASE_LABELS,zones:ZONES}));
 app.get('/api/me',(req,res)=>{const user=store.resolve(req.cookies.inh2_session);res.json({user:user?safeUser(user):null});});
 app.post('/api/register',asyncRoute(async(req,res)=>{if(!store.throttle('register:'+ip(req),5,3600000))throw new engine.GameError('가입 요청이 많습니다. 잠시 후 다시 시도하세요.',429);const body=authSchema.parse(req.body);if(body.password.length<10)throw new engine.GameError('비밀번호는 10자 이상 입력하세요.');if(['demo','admin','judge'].includes(body.username.toLowerCase()))throw new engine.GameError('예약된 아이디입니다.');let user;try{user=await store.createUser(body.username.toLowerCase(),body.password);}catch(e){if(String(e.code).includes('SQLITE'))throw new engine.GameError('이미 사용 중인 아이디입니다.',409);throw e;}setSession(req,res,user);res.status(201).json({user:safeUser(user)});}));
 function setSession(req,res,user){const token=store.session(user);res.cookie('inh2_session',token,{httpOnly:true,sameSite:'strict',secure:req.secure||req.get('x-forwarded-proto')==='https',maxAge:7*86400000,path:'/'});}
@@ -61,7 +62,7 @@ app.post('/api/game/action',auth,asyncRoute(async(req,res)=>{
    case 'reward':engine.takeReward(g,b.module);break;
    case 'module':engine.useModule(g,b.module,b.target);break;
    case 'reroll':engine.reroll(g);break;
-   case 'draft':engine.requirePhase(g,'discussion','verdict');if(g.eveCalls>=4)throw new engine.GameError('오늘의 EVE 초안을 모두 사용했습니다. 직접 입력으로 이어가세요.');drafts=await ai.drafts(owner,g,b.intent||'빈 구역으로 수색 유도',b.zone);break;
+   case 'draft':engine.requirePhase(g,'discussion','verdict');if(g.eveCalls>=4)throw new engine.GameError('오늘의 EVE 초안을 모두 사용했습니다. 직접 입력으로 이어가세요.');drafts=await ai.drafts(owner,g,b.intent||'작전 목표 강조');break;
    case 'archive':engine.openArchive(g);break;
    case 'abandon':engine.abandon(g);break;
   }
@@ -71,5 +72,5 @@ app.post('/api/game/action',auth,asyncRoute(async(req,res)=>{
 app.use(express.static(join(root,'dist'),{index:false,maxAge:'1h'}));
 app.get('/{*path}',(req,res)=>{if(req.path.startsWith('/api/'))return res.status(404).json({error:'경로를 찾을 수 없습니다.'});res.setHeader('Cache-Control','no-cache, no-transform');res.sendFile(join(root,'dist/index.html'));});
 app.use((err,req,res,next)=>{if(err instanceof z.ZodError)return res.status(400).json({error:'입력 형식을 확인하세요. 아이디는 영문·숫자·밑줄 3~24자입니다.'});if(err instanceof engine.GameError)return res.status(err.status).json({error:err.message});if(err.type==='entity.too.large')return res.status(413).json({error:'입력 크기가 제한을 넘었습니다.'});console.error('request_error',{type:err?.name,code:err?.code||'unknown'});res.status(500).json({error:'요청을 마치지 못했습니다. 잠시 후 다시 시도하세요.'});});
-const server=app.listen(Number(process.env.PORT||8682),'127.0.0.1',()=>console.log('imnotahuman2 listening on loopback'));
+const server=app.listen(Number(process.env.PORT||8682),process.env.HOST||'127.0.0.1',()=>console.log('imnotahuman2 listening'));
 process.on('SIGTERM',()=>server.close(()=>process.exit(0)));
