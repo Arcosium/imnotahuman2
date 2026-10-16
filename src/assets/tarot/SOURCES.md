@@ -1,5 +1,7 @@
 The following Rider–Waite–Smith tarot scans are from Wikimedia Commons. Their file pages mark the scans as public domain.
 
+Each matching `.gif` is a six-frame, fixed-card animation generated from its public-domain `.jpg` scan with a restrained moving sheen. Regenerate with `python3 scripts/generate-tarot-gifs.py`.
+
 - `moon.jpg` — [RWS Tarot 18 Moon](https://commons.wikimedia.org/wiki/File:RWS_Tarot_18_Moon.jpg)
 - `five-wands.jpg` — [RWS1909 - Wands 05](https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_05.jpeg)
 - `four-pentacles.jpg` — [RWS1909 - Pentacles 04](https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_04.jpeg)

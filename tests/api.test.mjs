@@ -24,7 +24,7 @@ test('HTTP 인증, 시연 격리, 권한 상승 방지, 동시 요청과 시연 
   if(g.phase==='ended')break;assert.equal(g.phase,'reward');await act('reward',{module:g.offers.includes('forge')?'forge':g.offers[0]});
  }
  assert.equal(g.phase,'ended');assert.equal(g.days,3);assert.equal(g.usage.costUsd,0);assert.ok(g.usage.fallbacks>0);assert.equal((await req('game',null,b.cookie)).body.game.phase,'report');
- const signup=await req('register',{username:'ordinary_player',password});assert.equal(signup.status,201);assert.equal((await req('game/start',{},signup.cookie)).body.game.days,7);assert.equal((await req('game/start',{mask:'gambler'},signup.cookie)).status,409);
+ const signup=await req('register',{username:'ordinary_player',password});assert.equal(signup.status,201);assert.equal((await req('game/start',{},signup.cookie)).body.game.days,3);assert.equal((await req('game/start',{mask:'gambler'},signup.cookie)).status,409);
 
  // A shared demo account must not exhaust one global start quota at an event.
  for(let i=0;i<22;i++){const fresh=await req('login',{username:'demo',password});assert.equal(fresh.status,200);assert.equal((await req('game/start',{},fresh.cookie)).status,200);}

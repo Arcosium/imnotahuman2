@@ -21,6 +21,7 @@ export class Store{
  }
  async createUser(username,password,role='player'){const id=randomUUID();this.db.prepare('INSERT INTO users(id,username,password,role,created) VALUES(?,?,?,?,?)').run(id,username,await passwordHash(password),role,Date.now());return this.userById(id);}
  userById(id){return this.db.prepare('SELECT id,username,role,profile FROM users WHERE id=?').get(id);}
+ userByRole(role){return this.db.prepare('SELECT id,username,role,profile FROM users WHERE role=? ORDER BY created LIMIT 1').get(role);}
  async login(username,password){const u=this.db.prepare('SELECT * FROM users WHERE username=?').get(username);const valid=await verify(password,u?.password||'0123456789abcdef0123456789abcdef:'+('00'.repeat(64)));if(!u||!valid)return null;return this.userById(u.id);}
  session(user){const token=randomBytes(32).toString('base64url');const owner=user.role==='demo'?randomUUID():user.id;this.db.prepare('INSERT INTO sessions VALUES(?,?,?,?)').run(hashToken(token),user.id,owner,Date.now()+7*86400000);return token;}
  resolve(token){if(!token)return null;return this.db.prepare('SELECT users.id,users.username,users.role,users.profile,sessions.owner FROM sessions JOIN users ON users.id=sessions.user_id WHERE token=? AND expires>?').get(hashToken(token),Date.now());}

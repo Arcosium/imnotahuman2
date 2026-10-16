@@ -109,10 +109,10 @@ test('폐기·철수는 남은 사람의 행방을 미확인으로 남기며 사
   }
 });
 
-test('7일 무전은 새 이야기가 이어지고 저장 복원·중복 처리에도 과거 기록 보존',()=>{
+test('3일 무전은 새 이야기가 이어지고 저장 복원·중복 처리에도 과거 기록 보존',()=>{
   let g=e.newGame({seed:'seven-voices'});
   const opening=structuredClone(g.story.entries);
-  for(let day=1;day<=7;day++) {
+  for(let day=1;day<=3;day++) {
     const count=g.story.entries.length;storyMorning(g);assert.equal(g.story.entries.length,count);
     if(!g.eventResolved)e.resolveEvent(g,g.event.id==='trace'?'surrender':'oppose');
     search(g,g.zones.find(z=>z.people===0).id);nextDay(g);
@@ -120,7 +120,7 @@ test('7일 무전은 새 이야기가 이어지고 저장 복원·중복 처리�
   }
   assert.equal(g.phase,'ended');assert.deepEqual(g.story.entries.slice(0,3),opening);
   const mornings=g.story.entries.filter(x=>x.contact==='yunseo'&&x.kind==='morning');
-  assert.equal(mornings.length,7);assert.equal(new Set(mornings.map(x=>x.text)).size,7);
+  assert.equal(mornings.length,3);assert.equal(new Set(mornings.map(x=>x.text)).size,7);
   assert.ok(g.story.contacts.every(c=>c.status==='escaped'));
 });
 
