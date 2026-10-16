@@ -17,7 +17,7 @@ const VOICES = [
     safe:'수색 소리가 멀어졌어요. 바늘을 다시 들었어요. 오늘 밤은 이 옷을 마저 고칠 수 있겠네요.',
     shaken:'우리는 아직 여기 있어요. 끊긴 회선을 기다리다 바늘을 놓쳤어요. 조금 있다 다시 부를게요.',
     escaped:'넘어왔어요. 소매의 파란 실 보이나요? 밖은 생각보다 춥네요. 그래도 이제 걸어도 돼요.',
-    left:'아직 안쪽이에요. 순찰 때문에 움직이지 못했어요. 코트는 입고 있어요. 회선이 닿으면 다시 불러 줘요.',
+    left:'아직 안쪽이에요. 외곽 통로가 봉쇄돼 움직이지 못했어요. 코트는 입고 있어요. 회선이 닿으면 다시 불러 줘요.',
     memory:'소매에 꿰맨 파란 실을 알아봐 달라고 했다.',
   },
   {
@@ -34,7 +34,7 @@ const VOICES = [
     safe:'수색이 지나갔어요. 무전기는 안 껐어요. 누가 부르면 바로 대답하려고요.',
     shaken:'여긴 아직 송신돼요. 돌아오지 않는 목소리가 있어요. 주파수를 다시 맞춰 보고 있어요.',
     escaped:'태오입니다. 넘어왔어요. 똑, 똑. 들렸죠? 이제 시계를 맞출 수 있겠어요.',
-    left:'순찰이 길을 막았어요. 아직 못 넘었어요. 무전기는 켜 둘게요. 똑, 똑.',
+    left:'외곽 통로가 봉쇄됐어요. 아직 못 넘었어요. 무전기는 켜 둘게요. 똑, 똑.',
     memory:'무전기의 송신 버튼을 두 번 두드리곤 했다.',
   },
   {
@@ -51,7 +51,7 @@ const VOICES = [
     safe:'아직 여기에 있어요. 수첩에 오늘도 대답했다고 적었어요. 내일도 그렇게 적고 싶어요.',
     shaken:'우리 목소리는 닿고 있어요. 대답이 끊긴 이름은 지우지 않았어요. 그대로 둘 거예요.',
     escaped:'밖이에요. 수첩도 가져왔어요. 이제 네 이름을 물어봐도 될까요?',
-    left:'순찰 때문에 방벽 앞에서 멈췄어요. 아직 안쪽이에요. 수첩의 빈 줄은 그대로 남겨 둘게요.',
+    left:'봉쇄된 통로 앞에서 멈췄어요. 아직 안쪽이에요. 수첩의 빈 줄은 그대로 남겨 둘게요.',
     memory:'수첩에 당신의 이름을 적을 한 줄을 비워 두었다.',
   },
 ];
@@ -88,28 +88,38 @@ export function storyLoss(g,zone,cause) {
   }
 }
 
-export function storyAfterSearch(g,zone,casualties) {
+export function storyAfterSearch(g,zone,casualties,rescued=0) {
   if(!g.story)return;
-  storyLoss(g,zone,'search');
-  for(const c of g.story.contacts.filter(c=>c.status==='alive'))entry(g,c,'after-search',voice(c.id)[casualties?'shaken':'safe']);
+  const affected=new Set();
+  for(const c of g.story.contacts.filter(c=>c.zone===zone&&c.status==='alive')){
+    affected.add(c.id);
+    if(rescued>0){c.status='rescued';c.rescuedDay=g.day;entry(g,c,'after-search',voice(c.id).safe);}
+    else{c.status='lost';c.lostDay=g.day;entry(g,c,'lost',`${c.name}의 회신이 수색 현장에서 끊겼다. ${voice(c.id).memory}`,false);}
+  }
+  for(const c of g.story.contacts.filter(c=>c.status==='alive'&&!affected.has(c.id)))entry(g,c,'after-search',voice(c.id)[casualties?'shaken':'safe']);
 }
 
 export function storyEnding(g,why) {
   if(!g.story)return;
   // Select precisely rescued people from the existing living population with an
   // independent seed. This assigns names to the outcome without changing it.
+  const alive=g.zones.reduce((n,z)=>n+z.people,0);
+  const newlyEscaped=why==='escape'?Math.min(alive,Math.floor(alive*Math.max(0,1-(g.exitRisk??g.patrol??0)+(g.eveProtected?0.15:0)))):0;
   const escaped=new Set(why==='escape'?g.zones.flatMap(z=>Array.from({length:z.people},(_,slot)=>`${z.id}:${slot}`))
-    .sort((a,b)=>rank(g.seed,`escape:${a}`).localeCompare(rank(g.seed,`escape:${b}`))).slice(0,g.rescued):[]);
+    .sort((a,b)=>rank(g.seed,`escape:${a}`).localeCompare(rank(g.seed,`escape:${b}`))).slice(0,newlyEscaped):[]);
   for(const c of g.story.contacts) {
     const v=voice(c.id);
     if(c.status==='lost') {
       entry(g,c,'ending',`${c.lostDay}일차에 끊긴 회선은 끝내 돌아오지 않았다. ${v.memory}`,false);
+    } else if(c.status==='rescued') {
+      c.status='escaped';
+      entry(g,c,'ending',v[c.status]);
     } else if(why==='escape') {
       c.status=escaped.has(`${c.zone}:${c.slot}`)?'escaped':'left';
       entry(g,c,'ending',v[c.status]);
     } else {
       c.status='unknown';
-      entry(g,c,'ending',`${why==='disposed'?'당신의 가면이 폐기되며':'당신이 회선을 닫으며'} 연락이 멎었다. ${c.name}의 마지막 무전은 ${c.lastHeardDay}일차에 남아 있다. 그 뒤의 행방은 확인되지 않았다.`,false);
+      entry(g,c,'ending',`${why==='disposed'?'당신의 정체가 발각되며':'당신이 작전을 중단하며'} 연락이 끊겼다. ${c.name}의 마지막 무전은 ${c.lastHeardDay}일차에 남아 있다. 그 뒤의 행방은 확인되지 않았다.`,false);
     }
   }
 }

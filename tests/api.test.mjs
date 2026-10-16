@@ -18,13 +18,13 @@ test('HTTP 인증, 시연 격리, 권한 상승 방지, 동시 요청과 시연 
  let g=(await req('game',null,a.cookie)).body.game;assert.equal((await req('game/action',{action:'begin',version:g.version},a.cookie,{Origin:'https://evil.example'})).status,403);
  const act=async(action,extra={})=>{const r=await req('game/action',{action,version:g.version,...extra},a.cookie);assert.equal(r.status,200,JSON.stringify(r.body));g=r.body.game;return r;};
  for(let day=1;day<=3;day++){
-  await act('begin');const chosen=g.radioZone;await act('talk',{text:`센서 오차를 공동 검증하기 위해 ${day}일차 ${chosen} 수색을 제안합니다.`,zone:chosen});
+  await act('begin');const chosen='rush';await act('talk',{text:`센서 오차를 공동 검증하기 위해 ${day}일차 ${chosen} 수색을 제안합니다.`});
   assert.equal((await req('game/action',{action:'prepare',version:g.version-1},a.cookie)).status,409);
-  await act('prepare');await act('search',{zone:chosen});assert.equal(g.phase,'verdict');await act('verdict',{vote:false,text:'합의된 신호를 검증했습니다. 공식 투표 기록을 확인하십시오.'});
+  await act('prepare');await act('search',{plan:chosen});assert.equal(g.phase,'verdict');await act('verdict',{vote:false,text:'합의된 신호를 검증했습니다. 공식 투표 기록을 확인하십시오.'});
   if(g.phase==='ended')break;assert.equal(g.phase,'reward');await act('reward',{module:g.offers.includes('forge')?'forge':g.offers[0]});
  }
  assert.equal(g.phase,'ended');assert.equal(g.days,3);assert.equal(g.usage.costUsd,0);assert.ok(g.usage.fallbacks>0);assert.equal((await req('game',null,b.cookie)).body.game.phase,'report');
- const signup=await req('register',{username:'ordinary_player',password});assert.equal(signup.status,201);assert.equal((await req('game/start',{},signup.cookie)).body.game.days,7);assert.equal((await req('game/start',{mask:'gambler'},signup.cookie)).status,409);
+ const signup=await req('register',{username:'ordinary_player',password});assert.equal(signup.status,201);assert.equal((await req('game/start',{},signup.cookie)).body.game.days,3);assert.equal((await req('game/start',{mask:'gambler'},signup.cookie)).status,409);
 
  // A shared demo account must not exhaust one global start quota at an event.
  for(let i=0;i<22;i++){const fresh=await req('login',{username:'demo',password});assert.equal(fresh.status,200);assert.equal((await req('game/start',{},fresh.cookie)).status,200);}

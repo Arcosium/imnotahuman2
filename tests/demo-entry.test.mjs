@@ -41,10 +41,10 @@ test('공개 시연 링크: 자동 로그인, 브라우저별 격리, 재방문 
 
   const act=async(action,extra={})=>{const response=await request('/api/game/action',{body:{action,version:g.version,...extra},cookie:a.cookie});assert.equal(response.status,200,JSON.stringify(response.body));g=response.body.game;return response;};
   for(let day=1;day<=3;day++){
-   await act('begin');const zone=g.radioZone;
-   if(day===1){const drafts=await act('draft',{intent:'수색 구역 검증',zone:'plant'});assert.ok(drafts.body.drafts.drafts.every(text=>text.includes('발전소')));}
-   await act('talk',{text:`${day}일차 신호의 불일치를 공동 검증할 것을 제안합니다.`,zone});
-   await act('prepare');await act('search',{zone});await act('verdict',{vote:false,text:'공동 검증에 동의한 공식 발의와 지지표를 확인하십시오.'});
+   await act('begin');const zone='rush';
+   if(day===1){const drafts=await act('draft',{intent:'작전 효율 검증'});assert.ok(drafts.body.drafts.drafts.every(text=>text.length>0));}
+   await act('talk',{text:`${day}일차 신호의 불일치를 공동 검증할 것을 제안합니다.`});
+   await act('prepare');await act('search',{plan:zone});await act('verdict',{vote:false,text:'공동 검증에 동의한 공식 발의와 지지표를 확인하십시오.'});
    if(g.phase==='ended')break;await act('reward',{module:g.offers.includes('forge')?'forge':g.offers[0]});
   }
   assert.equal(g.phase,'ended');assert.equal(g.days,3);assert.equal(g.usage.costUsd,0);
@@ -55,7 +55,7 @@ test('공개 시연 링크: 자동 로그인, 브라우저별 격리, 재방문 
   for(let i=0;i<25;i++){const visitor=await request('/api/demo/login',{body:{}});assert.equal(visitor.status,200);assert.equal((await request('/api/game/start',{body:{},cookie:visitor.cookie})).status,200);}
 
   const player=await request('/api/register',{body:{username:'preview_player',password:randomBytes(20).toString('hex')}});assert.equal(player.status,201);
-  const ordinary=(await request('/api/game/start',{body:{},cookie:player.cookie})).body.game;assert.equal(ordinary.days,7);
+  const ordinary=(await request('/api/game/start',{body:{},cookie:player.cookie})).body.game;assert.equal(ordinary.days,3);
   const preview=await request('/api/demo/login',{body:{},cookie:player.cookie});assert.equal(preview.status,200);assert.ok(!preview.headers.getSetCookie().some(value=>value.startsWith('inh2_session=')));
   const combined=player.cookie+'; '+preview.cookie;
   assert.equal((await request('/api/me',{cookie:combined})).body.user.role,'demo');assert.equal((await request('/api/game/start',{body:{daily:true},cookie:combined})).status,400);
