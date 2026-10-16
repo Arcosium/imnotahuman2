@@ -20,6 +20,7 @@ export class Store{
  this.db.exec("UPDATE scores SET eligible=0 WHERE eligible=1 AND run IN (SELECT id FROM runs WHERE COALESCE(json_extract(state,'$.usage.fallbacks'),0)>0)");
  }
  async createUser(username,password,role='player'){const id=randomUUID();this.db.prepare('INSERT INTO users(id,username,password,role,created) VALUES(?,?,?,?,?)').run(id,username,await passwordHash(password),role,Date.now());return this.userById(id);}
+ async demoUser(){const find=()=>this.db.prepare("SELECT id,username,role,profile FROM users WHERE username='demo'").get();let user=find();if(!user){try{user=await this.createUser('demo',randomBytes(32).toString('base64url'),'demo');}catch(error){user=find();if(!user)throw error;}}if(user.role!=='demo')throw new Error('demo_account_role_mismatch');return user;}
  userById(id){return this.db.prepare('SELECT id,username,role,profile FROM users WHERE id=?').get(id);}
  async login(username,password){const u=this.db.prepare('SELECT * FROM users WHERE username=?').get(username);const valid=await verify(password,u?.password||'0123456789abcdef0123456789abcdef:'+('00'.repeat(64)));if(!u||!valid)return null;return this.userById(u.id);}
  session(user){const token=randomBytes(32).toString('base64url');const owner=user.role==='demo'?randomUUID():user.id;this.db.prepare('INSERT INTO sessions VALUES(?,?,?,?)').run(hashToken(token),user.id,owner,Date.now()+7*86400000);return token;}

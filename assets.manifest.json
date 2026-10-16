@@ -1,20 +1,122 @@
 [
   {
     "file": "council-chamber.png",
-    "url": "https://imnotahuman2.ai-ve.uk/assets/council-chamber.png",
+    "url": "https://thelastvote.ai-ve.uk/assets/council-chamber.png",
     "sha256": "4f11c11997e582f79b9b5e4c9b79023d600e71e978a528b147bba6c65ea604d9",
     "bytes": 1382336
   },
   {
     "file": "PretendardVariable.woff2",
-    "url": "https://imnotahuman2.ai-ve.uk/assets/PretendardVariable.woff2",
+    "url": "https://thelastvote.ai-ve.uk/assets/PretendardVariable.woff2",
     "sha256": "9599f12fd42fc0bce1cd50b47a0c022e108d7aa64dd0d1bb0ed44f3282d900b4",
     "bytes": 2057688
   },
   {
     "file": "FONT-LICENSE.txt",
-    "url": "https://imnotahuman2.ai-ve.uk/assets/FONT-LICENSE.txt",
+    "url": "https://thelastvote.ai-ve.uk/assets/FONT-LICENSE.txt",
     "sha256": "82e9c8a4b203261f10ddba1296422d64914ff3d4b7bd8a12896d03f0f088d70a",
     "bytes": 4816
+  },
+  {
+    "file": "minjo-the-last-vote-logo-e930537153.png",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-the-last-vote-logo-e930537153.png",
+    "sha256": "e930537153815adfbbd938f2e1678c84644fdce3c641b43197e23c533768acff",
+    "bytes": 2423072
+  },
+  {
+    "file": "minjo-role-selection-placeholder-f3a9b478bb.png",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-role-selection-placeholder-f3a9b478bb.png",
+    "sha256": "f3a9b478bb05324357b5ee393a16eebb72340ea80c558d6d91e36683219e0591",
+    "bytes": 2343013
+  },
+  {
+    "file": "minjo-district-map-71fa3befd8.webp",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-district-map-71fa3befd8.webp",
+    "sha256": "71fa3befd83ceacbe19eb5e674d524141fefc2d865078cf8c3c6879415dc4285",
+    "bytes": 478408
+  },
+  {
+    "file": "minjo-metric-f0a2e25a99.jpg",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-metric-f0a2e25a99.jpg",
+    "sha256": "f0a2e25a99f174b5bbc28379c9a6a41cfcaab311b76517d54dbd7ce4b7eeb98d",
+    "bytes": 138016
+  },
+  {
+    "file": "minjo-audit-7cc50966c1.jpg",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-audit-7cc50966c1.jpg",
+    "sha256": "7cc50966c1cbe7906faf2d97fc486580fb2923ab8b32a9b90f5bc665a2e5eb38",
+    "bytes": 119600
+  },
+  {
+    "file": "minjo-hound-31117f2dfc.jpg",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-hound-31117f2dfc.jpg",
+    "sha256": "31117f2dfcd52a3d1eeae6c4f672037e1be99d2986d08c21deacec292b68ef4a",
+    "bytes": 90938
+  },
+  {
+    "file": "minjo-balance-3def40d678.jpg",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-balance-3def40d678.jpg",
+    "sha256": "3def40d678c3bbad790b2d38c0f88eacf88147d96a87299c53a0c682d50a1cbb",
+    "bytes": 111455
+  },
+  {
+    "file": "minjo-sentry-9f0aceef72.jpg",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-sentry-9f0aceef72.jpg",
+    "sha256": "9f0aceef723f853156dd352dde8c3433c57a9687feb72287dd84fe36dd53a1ba",
+    "bytes": 112137
+  },
+  {
+    "file": "minjo-echo-6c9e180953.jpg",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-echo-6c9e180953.jpg",
+    "sha256": "6c9e18095359edc8b2df5815c4bee6e81eef48b0fbe9d1942fd988a61e62bc87",
+    "bytes": 122420
+  },
+  {
+    "file": "minjo-remnant-d952f63157.jpg",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-remnant-d952f63157.jpg",
+    "sha256": "d952f63157e3e7bc08a3174ebeeec338fd0ebd347be68dd8e3b95b77b0c7ef7f",
+    "bytes": 110530
+  },
+  {
+    "file": "minjo-circle_04-210aaed68d.png",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-circle_04-210aaed68d.png",
+    "sha256": "210aaed68de75133fe663eeba6dbceb31b4fca2c4ed49b85c62e1b6b5fcf7550",
+    "bytes": 56681
+  },
+  {
+    "file": "minjo-light_01-e15db5a8cc.png",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-light_01-e15db5a8cc.png",
+    "sha256": "e15db5a8ccea012f4df82689f1a829bdaac04fd8a3066a723f157e0b01ffbf0a",
+    "bytes": 86592
+  },
+  {
+    "file": "minjo-fire_01-258f4fcbf2.png",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-fire_01-258f4fcbf2.png",
+    "sha256": "258f4fcbf20b20afe137fc4688ef24d6467a3e71b412c3dc9b400cd2c0ed3ce3",
+    "bytes": 95429
+  },
+  {
+    "file": "minjo-trace_03-0a08ccc56d.png",
+    "url": "https://thelastvote.ai-ve.uk/assets/minjo-trace_03-0a08ccc56d.png",
+    "sha256": "0a08ccc56dcb937636d59cb4b747535f99b7a3a72d828ee2c8b3622900537574",
+    "bytes": 39767
+  },
+  {
+    "file": "KENNEY-LICENSE.txt",
+    "url": "https://thelastvote.ai-ve.uk/assets/KENNEY-LICENSE.txt",
+    "sha256": "7edd59126c258e602e69905a0517cf51bedea489b1a69eb06a77edee1769e81e",
+    "bytes": 629
+  },
+  {
+    "file": "title-loop-f2b4a5410b.mp4",
+    "url": "https://thelastvote.ai-ve.uk/assets/title-loop-f2b4a5410b.mp4",
+    "sha256": "f2b4a5410b69f9898d1be8a423676567fb9c7c59d7da99f8fcddc8bc484243ee",
+    "bytes": 519291
+  },
+  {
+    "file": "title-loop-86b34b07cb.webm",
+    "url": "https://thelastvote.ai-ve.uk/assets/title-loop-86b34b07cb.webm",
+    "sha256": "86b34b07cbc7fec5aee618dce95b2913c32cd4c855d1f45aa4ee3651c003e309",
+    "bytes": 194669
   }
 ]

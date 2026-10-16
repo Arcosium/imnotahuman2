@@ -7,3 +7,5 @@ data
 _workspace/
 *.log
 public/assets/
+
+.playwright-cli/

@@ -17,20 +17,20 @@ function Transmission({contact,entry,ending=false}:{contact:Contact;entry:Entry;
   </article>;
 }
 
-export function SurvivorRadio({story,day,ending=false,onHistory}:{story:Story|null;day:number;ending?:boolean;onHistory:()=>void}) {
+export function SurvivorRadio({story,day,ending=false,compact=false,onHistory}:{story:Story|null;day:number;ending?:boolean;compact?:boolean;onHistory:()=>void}) {
   const [expanded,setExpanded]=useState(false);
   if(!story?.contacts.length)return null;
   const latest=story.contacts.map(contact=>({contact,entry:[...story.entries].reverse().find(e=>e.contact===contact.id)!}));
   // Today's lost contact is shown first, so a new loss cannot hide in a fold.
   latest.sort((a,b)=>Number(b.entry.day===day&&b.entry.kind==='lost')-Number(a.entry.day===day&&a.entry.kind==='lost')||b.entry.day-a.entry.day);
-  const shown=ending||expanded?latest:latest.slice(0,1);
-  return <section className={'survivor-radio '+(ending?'radio-ending':'')} aria-label={ending?'생존자들의 마지막 소식':'생존자 비밀 무전'}>
-    <div className="radio-heading"><Radio size={20}/><div><h3>{ending?'기억해야 할 이름들':'불씨의 목소리'}</h3><p>{ending?'이번 잠입에서 이어진 목소리':'당신에게만 닿는 무전 · 위치 비공개'}</p></div></div>
+  const shown=ending?latest:compact?latest.slice(0,3):expanded?latest:latest.slice(0,1);
+  return <section className={'survivor-radio '+(ending?'radio-ending':'')+(compact?' radio-briefing':'')} aria-label={ending?'생존자들의 마지막 소식':'생존자 비밀 무전'}>
+    {!compact&&<div className="radio-heading"><Radio size={20}/><div><h3>{ending?'기억해야 할 이름들':'불씨의 목소리'}</h3><p>{ending?'이번 잠입에서 이어진 목소리':'당신에게만 닿는 무전 · 위치 비공개'}</p></div></div>}
     {shown.map(({contact,entry})=><Transmission key={contact.id} contact={contact} entry={entry} ending={ending}/>)}
-    <div className="radio-actions">
+    {!compact&&<div className="radio-actions">
       {!ending&&latest.length>1&&<button type="button" className="text-button" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded?'다른 목소리 접기':`다른 목소리 ${latest.length-1}명 더 읽기`}</button>}
       <button type="button" className="text-button" onClick={onHistory}>무전 기록 {story.entries.length}건<ArrowUpRight size={15}/></button>
-    </div>
+    </div>}
   </section>;
 }
 

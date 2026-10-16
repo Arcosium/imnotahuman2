@@ -1,5 +1,5 @@
 [Unit]
-Description=I'm Not a Human 2 game server
+Description=The Last Vote game server
 After=network-online.target
 Wants=network-online.target
 

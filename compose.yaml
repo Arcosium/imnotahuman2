@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    image: imnotahuman2:local
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8682
+      DATA_DIR: /app/data
+    ports:
+      - "${APP_PORT:-8682}:8682"
+    volumes:
+      - game-data:/app/data
+    restart: unless-stopped
+    init: true
+
+volumes:
+  game-data:

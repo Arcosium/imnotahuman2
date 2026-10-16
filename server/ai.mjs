@@ -28,7 +28,7 @@ export function alignedDrafts(reply,phase,zone){
 function jsonText(s){const t=s.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();try{return JSON.parse(t);}catch{const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)throw new Error('invalid_json');return JSON.parse(t.slice(a,b+1));}}
 
 export class GameAI {
- constructor({dataDir,recordUsage,available}){this.dataDir=dataDir;this.recordUsage=recordUsage;this.available=available;this.status={mode:process.env.CROCHE_SERVER_KEY?'ready':'offline',lastError:null};}
+ constructor({dataDir,recordUsage,available}){this.dataDir=dataDir;this.recordUsage=recordUsage;this.available=available;this.status={mode:process.env.CROCHE_SERVER_KEY&&process.env.AI_OFFLINE!=='1'?'ready':'offline',lastError:null};}
  async withProject(owner,g,fn,authorization={}){
   if(!process.env.CROCHE_SERVER_KEY||process.env.AI_OFFLINE==='1'||(g.usage.requests>=140||g.usage.calls>=140)||g.usage.costUsd>=Number(process.env.RUN_BUDGET_USD||0.5)||!this.available())throw new Error('budget_or_offline');
   const started=Date.now(),fallbacksBefore=g.usage.fallbacks;let project;
@@ -40,7 +40,7 @@ export class GameAI {
   finally{if(project)await project.close();const elapsed=Date.now()-started;g.usage.lastMs=elapsed;g.usage.latencyMs+=elapsed;}
  }
  async request(project,g,id,text,ctx){if(g.usage.requests>=140||g.usage.calls>=140)throw new Error('run_request_limit');g.usage.requests++;const gen=g.council.find(c=>c.id===id)?.generation||0;const agent=await project.agent(id,{instance:`${g.id}-${gen}`});const messages=[];const sub=agent.subscribe({onEvent:e=>{if(e.type==='message.end'&&typeof e.text==='string')messages.push(e.text);}});try{const result=await agent.request({id:randomUUID(),text,context:JSON.stringify(ctx)},{wait:'idle',signal:AbortSignal.timeout(30000)});const last=[...result.messages].reverse().find(m=>m.status==='completed'&&m.text?.trim());if(!last)throw new Error('no_completed_reply');return last.text;}finally{sub.close();}}
- statusFor(g){return g?.aiStatus||{mode:process.env.CROCHE_SERVER_KEY?'ready':'offline',lastError:null};}
+ statusFor(g){return g?.aiStatus||{mode:process.env.CROCHE_SERVER_KEY&&process.env.AI_OFFLINE!=='1'?'ready':'offline',lastError:null};}
  fallback(g,error){g.usage.fallbacks++;g.aiStatus=this.status={mode:'fallback',lastError:['budget_or_offline','run_request_limit'].includes(error?.message)?error.message:'provider_unavailable'};}
  async discuss(owner,g,record){
   const done=new Set(),before=averages(g).find(a=>a.target==='player').value,previous={...g.preferences};

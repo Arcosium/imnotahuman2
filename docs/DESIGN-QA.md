@@ -81,3 +81,39 @@ Figma Community의 Game UI Dark Fantasy RPG를 다시 검색하고 제작자 UXz
 근거: `_workspace/story/report-check/`, `loss-check/`, `visual/results.json`, `visual/*-mobile.png`, `visual/*-desktop.png`. 상태별 테스트 11개를 포함한 전체 43개 검사, TypeScript 검사와 프로덕션 빌드를 통과했다.
 
 배포 후 실제 HTTPS 사이트에서도 3일 시연을 진행해 첫 연락, 수색 뒤 무전, 결말, 무전 보관소를 PC·모바일에서 촬영하고 직접 확인했다. 공개 화면의 위원 발언을 인용해 두 번째 발언으로 제출했고, 공식 수색 기록을 변론에 인용했다. 무전 창 Escape 닫기와 새로고침 후 결말 다시 열기도 동작했다. 브라우저 예외·가로 넘침은 0건, AI 대체 진행은 1회였다. 근거는 `_workspace/story/live/`다.
+
+
+## The Last Vote · minjo UI 통합 검증 (2026-10-16)
+
+사용자가 지정한 minjo 브랜치(c30d0c2)의 시각 구성을 우선했다. 직업 카드의 기울기·호박색 광원·거친 버튼과 단말 대화창은 원본 디자인으로 유지했다. 저장소에 빠진 title-screen-bg.png는 기존 관제실 이미지로 연결했다. 다른 협업자 이미지와 글꼴은 해시가 있는 자산 목록으로 배포했다.
+
+| 위치 | Before | After | Why |
+|---|---|---|---|
+| 브리핑 모바일 | 오른쪽 설명과 지도 폭 넘침 | 세로 브리핑·위원 가로 목록 | 본문 가로 스크롤 제거 |
+| 지도 핀 | 제목과 설명에 핀 겹침 | 데스크톱·모바일 좌표 조정 | 구역과 다음 행동 식별 |
+| 선택 직업 표시 | 카드 밖으로 잘림 | 선택 스탬프를 안쪽으로 이동 | 선택 상태 읽기 |
+| 위원 정보 | 새 UI에서 판단·기록 접근 누락 | 위원 판단·기록 인용·전체 대화 메뉴 | 원래 게임 기능 보존 |
+| EVE | 훈련용 문구와 도시 규칙 불일치 | 선택 구역·기존 도시 목표 전달 | 다른 구역을 수색하도록 바뀌는 회귀 방지 |
+| 시연 입장 | ID·비밀번호와 A/B 구성 선택 | /demo 자동 접속·demo-0 서버 강제 | 발표 동선과 초기 구성 재현 |
+| 이미지 캡처 | 다운로드 중 부분 이미지 | 이미지 decode·네트워크 대기 후 재촬영 | 실제 완전히 렌더된 화면을 발표에 사용 |
+
+검사 도구는 arka-design/scripts/check.py다. 1440×900·390×844에서 확인했다. report-final, operation-final, verdict-final, reward-final은 레이아웃 결함 0건이다. 운영 첫 화면도 레이아웃 0건이다. 별도 브라우저 동선 검사는 12개 상태를 두 크기에서 수행해 가로 넘침과 페이지 오류가 없고 3일 결말까지 진행됐다.
+
+원시 스타일 경고를 모두 0건이라고 해석하지 않는다. 직업 카드의 회전은 grid 경계보다 5~8px 바깥까지 그려지지만 화면 밖으로 나가지 않고 클릭 영역이 유지된다. 이는 minjo 원본의 의도된 카드 연출이다. 단말의 스크롤 밖 메시지와 고정 입력란을 겹침으로 잡는 항목은 실제로 overflow로 잘린 영역을 비교한 오탐이다. 직접 렌더를 열어 입력란 가림이 없음을 확인했다. dark-glow, shadow, polygon, nested-card 경고는 사용자 지정 광원·거친 버튼·채팅 말풍선에 해당하므로 하우스 취향으로 제거하지 않았다.
+
+근거: _workspace/lastvote/ui/result.json, qa-production-title/, qa-lobby-final/, qa-report-final/, qa-reaction-final/, qa-operation-final/, qa-verdict-final/, qa-reward-final/. 폰트와 이미지 로딩 완료 후 실사이트 캡처는 공모전 제출 작업 폴더 assets에 보관했다.
+
+## Higgsfield 시작 배경의 반복 재생 (2026-10-16)
+
+기존 관제실을 유지하고 먼지·안개·빛에만 약한 움직임을 주었다. Kling 3.0 생성 1회 뒤 시작과 끝의 24프레임을 섞어 약 4초 무음 반복 자산으로 후처리했다. 시작·중간·끝 프레임을 직접 확인했다.
+
+| 위치 | Before | After | Why |
+|---|---|---|---|
+| 영상 반복 | 생성 파일 그대로 재시작 | 끝 1초와 시작 1초를 코사인 곡선으로 혼합 | 반복 경계의 구도·밝기 변화 완화 |
+| 코덱 | MP4만 제공 | WebM 우선·MP4 대체 | H.264 미지원 Chromium 재생 지원 |
+| 영상 요소 | 인라인 기준선으로 6~7px 넘침 | display:block | 컨테이너 높이 일치 |
+| 동작 제어 | 자동 움직임만 제공 | 끄기·동작 줄이기·데이터 절약·정지 배경 | 화면 조작과 읽기 방해 감소 |
+
+운영 HTTPS에서 Chromium 데스크톱 5회·모바일 크기 3회 반복 경계를 기록했다. 경계 프레임 간격은 33.2~50ms로 24fps 재생 범위였고 stalled·ended·error, 페이지 예외, 가로 넘침은 없었다. 각 반복의 내부 seek에서 waiting 이벤트는 있었으나 프레임 재개 간격은 위 범위였다. 움직임 끄기·다시 켜기, 동작 줄이기 시 영상 요청 0건, 영상 요청 강제 실패 시 정지 배경도 확인했다. 모든 기기·브라우저와 불안정한 회선을 무조건 보장하는 결과는 아니다.
+
+근거: _workspace/lastvote/motion-qa/result.json 및 desktop.png·mobile.png, qa-title-motion-delivery/. 최종 check.py는 데스크톱·모바일 모두 결함 0건·Impeccable 0건이다. 원본과 생성·후처리 영수증은 vault/imnotahuman2/art/lastvote-motion-20261016에 보관했다.
