@@ -292,62 +292,97 @@
 .report-briefing .location-start:disabled{opacity:.42}
 @media(max-width:1000px){.briefing-council-rail{right:320px;left:18px;bottom:16px}.briefing-council-member{min-width:124px}.report-briefing{top:12px;right:12px;bottom:12px;width:300px;padding:20px}.briefing-title h1{font-size:34px}}
 
-/* The fixed-location debate is read on a field handset over the blurred 2D map. */
-.discussion-game{position:relative;isolation:isolate;max-width:none;min-height:100svh;margin:0;padding:18px 20px 24px;overflow:hidden;background:transparent}
-.discussion-backdrop{position:fixed;inset:-10px;z-index:0;background-position:center;background-size:cover;filter:blur(2px) brightness(.78) saturate(.65);transform:scale(1.015);pointer-events:none}
+/* A landscape field terminal keeps the live debate beside the player's controls. */
+.discussion-game{position:relative;isolation:isolate;max-width:none;min-height:100svh;margin:0;padding:20px;overflow:hidden;background:transparent}
+.discussion-backdrop{position:fixed;inset:-10px;z-index:0;background-position:center;background-size:cover;filter:blur(3px) brightness(.6) saturate(.65);pointer-events:none}
 .discussion-game>.game-layout{position:relative;z-index:1;display:block;max-width:none;margin:0}
-.discussion-game>.mission-strip,.discussion-game>.phase-nav,.discussion-game>.radio-shortcut,.discussion-game>.module-shortcut{display:none}
-.discussion-game .main-console{position:relative;width:min(100%,590px);height:min(920px,calc(100svh - 36px));min-height:630px;margin:0 auto;padding:0;align-self:auto;overflow:hidden;border:8px solid #242620;border-radius:38px;background:linear-gradient(145deg,rgba(39,41,34,.98),rgba(13,16,14,.98) 18%,rgba(15,18,16,.98));box-shadow:0 28px 90px rgba(0,0,0,.72),inset 0 0 0 1px rgba(205,190,148,.28),inset 0 0 24px rgba(0,0,0,.76)}
-.discussion-game .main-console:before{content:"";position:absolute;inset:5px;border:1px solid rgba(168,157,125,.24);border-radius:29px;pointer-events:none;z-index:6}
-.discussion-game .discussion-roster{display:none}
-.discussion-phone{position:relative;display:flex;flex-direction:column;height:100%;padding:34px 23px 18px;overflow:hidden}
-.phone-earpiece{position:absolute;top:12px;left:50%;width:52px;height:5px;transform:translateX(-50%);border-radius:9px;background:#090b09;box-shadow:0 1px 0 rgba(205,190,148,.2)}
-.council-chat-heading{display:flex;align-items:center;justify-content:space-between;flex:none;min-height:54px;padding:0 3px 13px;border-bottom:1px solid rgba(198,181,135,.32)}
-.council-chat-heading>div{display:flex;align-items:baseline;gap:12px}
-.council-chat-heading .mono{color:#d9ad64;font-size:11px;letter-spacing:.12em}
-.council-chat-heading>div>b{font:12px 'Courier New',monospace;color:#d0cbbd}
-.phone-module{display:flex;align-items:center;gap:5px;color:#d7c99e;padding:7px;border:1px solid rgba(187,174,134,.35);font-size:11px}
-.discussion-game .council-chat-log{flex:1;height:auto;min-height:0;max-height:none;margin:0 -3px;padding:18px 5px 12px;overflow:auto;border:0;border-bottom:1px solid rgba(198,181,135,.22);scrollbar-width:thin;scrollbar-color:#686452 transparent}
-.discussion-game .message{align-items:flex-end;max-width:92%;gap:9px;margin:0 0 15px;padding:0;border:0;background:transparent}
-.discussion-game .message .council-avatar,.discussion-game .message>.sigil{width:38px;height:38px;flex:0 0 38px;border:1px solid rgba(201,168,99,.7);box-shadow:0 3px 12px #0008}
+.discussion-game>.mission-strip,.discussion-game>.phase-nav,.discussion-game>.radio-shortcut,.discussion-game>.module-shortcut,.discussion-game .discussion-roster{display:none}
+.discussion-game .main-console{position:relative;width:min(100%,1660px);height:calc(100dvh - 40px);min-height:620px;margin:0 auto;padding:0;overflow:hidden;border:6px solid #34362e;border-radius:24px;background:#111510f5;box-shadow:0 20px 70px #0009,inset 0 0 0 1px #b7aa7a40}
+.discussion-tablet{display:flex;flex-direction:column;min-width:0;height:100%;padding:24px 28px 26px}
+.council-chat-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;flex:none;padding:0 0 18px;border-bottom:1px solid #c6b58740}
+.council-chat-heading>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.council-chat-heading .mono{font-size:13px;color:#dab574;letter-spacing:.1em}
+.council-chat-heading h1{margin:0;font:500 26px 'Noto Serif KR',serif;color:#f2e8d4}
+.council-chat-heading p{flex-basis:100%;margin:0;font-size:14px;color:#b7b9ac;line-height:1.5}
+.chat-turns{display:flex;align-items:center;gap:12px;white-space:nowrap;font-size:13px;color:#b7b9ac}
+.chat-turns b{font:500 20px 'Courier New',monospace;color:#e9c17d}
+.chat-tools{display:flex;flex-wrap:wrap;align-items:center;gap:4px 20px;flex:none;padding:8px 0;border-bottom:1px solid #c6b58740}
+.chat-tools button{display:inline-flex;align-items:center;gap:6px;min-height:40px;font-size:14px;color:#d9caae}
+.chat-tools button:hover{color:#ffe0a2}
+.chat-tools .chat-connection{margin-left:auto;color:#b5c4a8;font-size:12px}
+.discussion-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,37%);flex:1;min-height:0;min-width:0}
+.chat-reading,.chat-writing{display:flex;flex-direction:column;min-width:0;min-height:0}
+.chat-reading{padding-right:26px}
+.chat-writing{padding-left:26px;border-left:1px solid #c6b58730}
+.chat-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:20px 0 14px}
+.chat-panel-heading h2{margin:0;font-size:16px;font-weight:600;color:#e0d8c4}
+.chat-panel-heading>span{font-size:12px;color:#b0b3a4}
+.discussion-game .council-chat-log{flex:1;height:auto;min-height:0;max-height:none;margin:0;padding:8px 12px 12px 0;overflow:auto;border:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#686452 transparent}
+.discussion-game .message{align-items:flex-end;max-width:96%;gap:12px;margin:0 0 24px;padding:0;border:0;background:transparent}
+.discussion-game .message .council-avatar,.discussion-game .message>.sigil{width:44px;height:44px;flex:0 0 44px;border:1px solid #c9a863aa;box-shadow:0 3px 12px #0008}
 .discussion-game .message .council-avatar img{filter:saturate(.68) contrast(1.12)}
-.discussion-game .message>div{max-width:calc(100% - 49px)}
-.discussion-game .message-label{margin:0 0 4px;gap:0}
-.discussion-game .message-label b{font-size:11px;color:#e2bd73;letter-spacing:.03em}
-.discussion-game .message p{max-width:46ch;padding:9px 12px;border:1px solid rgba(157,151,126,.28);border-radius:2px 12px 12px 12px;background:rgba(45,47,40,.88);color:#e1ded2;font-size:13px;line-height:1.75;box-shadow:0 4px 12px #0004}
-.discussion-game .message.mine{flex-direction:row-reverse;margin-left:auto;padding:0;border:0;background:transparent;text-align:left}
-.discussion-game .message.mine .message-label{display:none}
-.discussion-game .message.mine>div{max-width:calc(100% - 49px)}
-.discussion-game .message.mine p{border-color:rgba(216,170,91,.52);border-radius:12px 2px 12px 12px;background:rgba(91,69,36,.9);color:#f1dfbc}
-.discussion-game .message.system-message{max-width:100%;justify-content:center;align-items:center;margin:3px 0 17px;padding:8px 7px;border-top:1px dashed rgba(196,184,145,.25);border-bottom:1px dashed rgba(196,184,145,.25)}
+.discussion-game .message>div,.discussion-game .message.mine>div{min-width:0;max-width:calc(100% - 56px)}
+.discussion-game .message-label{margin:0 0 7px;gap:0}
+.discussion-game .message-label b{font-size:14px;color:#e2bd73;letter-spacing:.03em}
+.discussion-game .message p{max-width:54ch;margin:0;padding:13px 16px;border:1px solid #9d977e47;border-radius:2px 14px 14px 14px;background:#2d2f28e0;color:#eeeadd;font-size:17px;line-height:1.8;overflow-wrap:anywhere;box-shadow:0 4px 12px #0003}
+.discussion-game .message.mine{width:fit-content;flex-direction:row-reverse;margin-left:auto;padding:0;border:0;background:transparent;text-align:left}
+.discussion-game .message.mine .message-label{justify-content:flex-end;text-align:right}
+.discussion-game .message.mine p{border-color:#d8aa5b85;border-radius:14px 2px 14px 14px;background:#5b4524d9;color:#f5e5c6}
+.discussion-game .message.system-message{max-width:100%;justify-content:center;align-items:center;margin:0 0 24px;padding:14px 8px;border-top:1px dashed #c4b89140;border-bottom:1px dashed #c4b89140}
 .discussion-game .message.system-message .message-label{display:none}
-.discussion-game .message.system-message .sigil{width:24px;height:24px;flex-basis:24px;font-size:11px}
-.discussion-game .message.system-message>div{max-width:calc(100% - 32px)}
-.discussion-game .message.system-message p{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#b7b5a9;font-size:11px;line-height:1.65}
-.chat-silence{padding:22px 8px;color:#a9a899;text-align:center;font:12px Georgia,'Noto Serif KR',serif;letter-spacing:.02em}
-.chat-feedback{flex:none;margin:8px 0 0;padding:8px 10px;border-left:2px solid #d1a558;background:rgba(196,151,76,.08)}
-.chat-feedback b{font-size:11px;color:#e0bd78}
-.chat-feedback span{display:block;margin-top:3px;font-size:11px;color:#c5c4b9}
-.discussion-game .chat-composer{flex:none;margin:0;padding:12px 0 0;border:0;background:transparent}
-.discussion-game .eve-panel{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0 0 10px;padding:0;border:0;background:transparent}
-.discussion-game .eve-header{display:flex;align-items:center;gap:6px;width:100%;margin:0;color:#d7ad62}
-.discussion-game .eve-header b{font-size:11px;letter-spacing:.1em}
-.discussion-game .eve-header small{font-size:11px;color:#9e9b8c}
-.discussion-game .intent-buttons{display:flex;flex-wrap:wrap;gap:5px}
-.discussion-game .intent-buttons button{min-height:29px;padding:5px 8px;border:1px solid rgba(179,167,132,.32);background:rgba(29,32,28,.8);color:#c7c4b6;font-size:11px}
+.discussion-game .message.system-message .sigil{width:28px;height:28px;flex-basis:28px;font-size:12px}
+.discussion-game .message.system-message>div{max-width:calc(100% - 40px)}
+.discussion-game .message.system-message p{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#bfc2b4;font-size:14px;line-height:1.7}
+.chat-silence{padding:24px 10px;color:#b9bbad;text-align:center;font-size:15px;line-height:1.8}
+.discussion-game .chat-feedback{flex:none;margin:12px 0 0;padding:12px 16px;border:1px solid #c6a36733;border-left:2px solid #d1a558;background:#c4974c0d}
+.chat-feedback b{font-size:14px;color:#e0bd78}
+.chat-feedback span{display:block;margin-top:5px;font-size:14px;line-height:1.6;color:#d0d0c3}
+.discussion-game .chat-composer{flex:1;min-height:0;margin:0;padding:0 8px 0 0;border:0;background:transparent;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#686452 transparent}
+.chat-zone-choice{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;color:#d7c9ac;font-size:14px}
+.chat-zone-choice select{width:100%;min-width:0;min-height:44px;padding:10px 12px;font-size:15px;border-color:#9c94784d;background:#1b201a}
+.discussion-game .eve-panel{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 24px;padding:16px;border:1px solid #d1ad6338;background:#d1ad6307}
+.discussion-game .eve-header{display:flex;align-items:center;gap:8px;width:100%;margin:0;color:#e0b86f}
+.discussion-game .eve-header b{font-size:15px;letter-spacing:.1em}
+.discussion-game .eve-header small{margin-left:auto;font-size:12px;color:#b6b6a6}
+.discussion-game .intent-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.discussion-game .intent-buttons button{min-height:44px;padding:8px;border:1px solid #b3a78452;background:#1d201ccc;color:#dedbcc;font-size:13px;line-height:1.5}
 .discussion-game .intent-buttons button:hover:not(:disabled){border-color:#d6a85b;color:#f0d397;background:#3a3325}
-.discussion-game .drafts{flex-basis:100%;margin-top:2px}
-.discussion-game .drafts button{padding:9px 8px;border-color:rgba(179,167,132,.25);background:rgba(28,31,28,.9);font-size:11px}
-.discussion-game #speech{min-height:68px;max-height:120px;padding:10px 12px;border:1px solid rgba(179,167,132,.4);border-radius:3px;background:rgba(9,12,10,.88);color:#eee8d9;font-size:13px;line-height:1.65}
-.discussion-game #speech::placeholder{color:#969688}
-.discussion-game .compose-bottom{align-items:center;margin-top:7px}
-.discussion-game .compose-bottom>span{font-size:11px;color:#8f9085}
-.discussion-game .compose-bottom .button{min-width:96px;min-height:37px;justify-content:center;padding:7px 13px;font-size:12px}
-.discussion-game .compose-bottom .button svg{display:none}
-.discussion-game .chat-footer{flex:none;justify-content:center;margin:11px 0 0;padding:10px 0 0;border-top:1px solid rgba(198,181,135,.2)}
-.discussion-game .chat-footer .button{width:100%;min-height:39px;justify-content:space-between;padding:8px 13px;border:1px solid rgba(179,167,132,.32);background:rgba(29,32,28,.72);font-size:11px}
-.discussion-game .chat-footer .button svg{width:15px}
-@media(max-width:700px){.discussion-game{padding:7px 7px 12px}.discussion-game .main-console{width:min(100%,540px);height:calc(100svh - 18px);min-height:550px;border-radius:31px;border-width:6px}.discussion-game .discussion-phone{padding:31px 15px 13px}.discussion-game .council-chat-log{padding:14px 2px 8px}.discussion-game .message{max-width:98%;gap:7px;margin-bottom:12px}.discussion-game .message .council-avatar,.discussion-game .message>.sigil{width:32px;height:32px;flex-basis:32px}.discussion-game .message>div,.discussion-game .message.mine>div{max-width:calc(100% - 40px)}.discussion-game .message p{font-size:12px;padding:8px 10px}.discussion-game .council-chat-heading .mono{font-size:11px}.discussion-game .intent-buttons button{font-size:11px;padding:4px 6px}}
+.discussion-game .eve-panel .eve-hint{font-size:14px;line-height:1.7;color:#e5c796;margin:0}
+.discussion-game .drafts{flex-basis:100%;margin:0}
+.discussion-game .drafts button{padding:14px 12px;border-color:#b3a78440;background:#1c1f1ce6;font-size:15px;line-height:1.75;text-align:left}
+.chat-eve{margin:0 0 18px;border:1px solid #d1ad6338;background:#d1ad6307}.chat-eve summary{display:flex;align-items:center;gap:8px;min-height:48px;padding:12px;color:#e0b86f;font-size:14px;cursor:pointer;list-style:none}.chat-eve summary::-webkit-details-marker{display:none}.chat-eve summary small{margin-left:auto;color:#b6b6a6;font-size:12px}.chat-eve summary::after{content:"+";margin-left:8px;font-size:18px}.chat-eve[open] summary::after{content:"−"}.discussion-game .chat-eve .eve-panel{border:0;margin:0;padding:4px 12px 12px;background:transparent}.discussion-game .chat-eve .eve-header{display:none}
+.chat-input-label{display:block;margin:0 0 10px;font-size:14px;color:#d7c9ac}
+.discussion-game #speech{width:100%;min-height:160px;max-height:360px;padding:14px;border:1px solid #b3a78466;border-radius:3px;background:#090c0ae0;color:#eee8d9;font-size:16px;line-height:1.8;resize:vertical}
+.discussion-game #speech::placeholder{color:#a0a391}
+.discussion-game .compose-bottom{align-items:center;margin:12px 0 4px}
+.discussion-game .compose-bottom>span{font-size:13px;color:#b3b6a6}
+.discussion-game .compose-bottom .button{min-width:110px;min-height:46px;justify-content:center;padding:10px 18px;font-size:15px}
+.discussion-game .chat-footer{display:flex;flex:none;margin:16px 0 0;padding:16px 0 0;border-top:1px solid #c6b58733}
+.discussion-game .chat-footer .button{width:100%;min-height:48px;justify-content:space-between;padding:12px 16px;border:1px solid #b3a78452;background:#1d201cb8;font-size:14px}
+.chat-turns-complete{padding:22px 16px;border:1px solid #b3a78440;color:#e0d7c1;font-size:16px;line-height:1.8}
+.discussion-tablet>.module-receipt{flex:none;margin:10px 0 0;padding:10px;font-size:13px}
+@media(min-width:901px) and (max-height:800px){.discussion-game{padding:12px}.discussion-game .main-console{height:calc(100dvh - 24px);min-height:550px}.discussion-tablet{padding:18px 22px}.council-chat-heading{padding-bottom:12px}.council-chat-heading h1{font-size:23px}.chat-panel-heading{padding-top:16px}}
+@media(max-width:1100px) and (min-width:901px){.discussion-tablet{padding:20px}.chat-reading{padding-right:18px}.chat-writing{padding-left:18px}.discussion-workspace{grid-template-columns:minmax(0,1fr) 345px}.discussion-game .message p{font-size:16px}.chat-tools{column-gap:15px}.council-chat-heading p{font-size:13px}}
+@media(max-width:900px){
+ .discussion-game{padding:10px}.discussion-game .main-console{height:auto;min-height:0;max-width:760px;border-width:4px;border-radius:18px}
+ .discussion-tablet{height:auto;padding:20px 18px}.council-chat-heading{align-items:flex-start;gap:12px}.council-chat-heading>div{gap:8px}.council-chat-heading .mono{font-size:12px}.council-chat-heading h1{flex-basis:100%;font-size:25px}.council-chat-heading p{font-size:13px}
+ .chat-turns{flex-direction:column;align-items:flex-end;gap:6px;font-size:12px}.chat-tools{gap:0 16px}.chat-tools button{font-size:13px;min-height:44px}.chat-tools .chat-connection{font-size:12px}
+ .discussion-workspace{display:flex;flex-direction:column}.chat-reading{padding:0}.chat-writing{padding:0;border:0;border-top:1px solid #c6b58740;margin-top:20px}
+ .discussion-game .council-chat-log{flex:none;height:clamp(280px,46svh,500px);min-height:0;padding-right:6px}.discussion-game .message{max-width:100%;gap:9px;margin-bottom:18px}.discussion-game .message .council-avatar,.discussion-game .message>.sigil{width:34px;height:34px;flex-basis:34px}.discussion-game .message>div,.discussion-game .message.mine>div{max-width:calc(100% - 43px)}.discussion-game .message p{font-size:16px;padding:11px 12px;line-height:1.75}.discussion-game .message-label b{font-size:13px}.discussion-game .message.system-message p{font-size:13px}.discussion-game .message.system-message .sigil{width:26px;height:26px;flex-basis:26px}
+ .discussion-game .chat-composer{overflow:visible;padding:0;flex:none}.discussion-game .chat-feedback{padding:10px 12px}.chat-feedback b,.chat-feedback span{font-size:13px}.discussion-game #speech{min-height:170px}.discussion-game .chat-footer{margin-top:18px}
+}
+@media(max-width:360px){.discussion-game{padding:5px}.discussion-tablet{padding:16px 12px}.council-chat-heading h1{font-size:22px}.chat-tools{gap:0 12px}.discussion-game .eve-panel{padding:12px}.discussion-game .message p{font-size:15px}}
+
+.briefing-modules{display:flex;align-items:center;gap:8px;width:100%;margin:12px 0;padding:13px 10px;border:1px solid #c6b58760;color:#e2c58b;font-size:13px;line-height:1.5;text-align:left}
+.briefing-modules svg:last-child{margin-left:auto;flex:none}
+.tutorial-guide{width:min(620px,calc(100vw - 32px));max-height:calc(100dvh - 32px);margin:auto;padding:32px;border:1px solid #b8a67d80;border-radius:8px;background:#171c17;color:#e7e1d4;box-shadow:0 24px 90px #0009;overflow:auto}
+.tutorial-guide::backdrop{background:#050806cc;backdrop-filter:blur(3px)}
+.tutorial-kicker{display:flex;align-items:center;gap:8px;color:#dbb978;font-size:13px}.tutorial-kicker small{margin-left:auto;color:#b9bead;font-size:12px}
+.tutorial-guide h2{margin:24px 0;font:500 28px/1.5 'Noto Serif KR',serif;word-break:keep-all}
+.tutorial-guide ol{list-style:none;padding:0;margin:0;display:grid;gap:18px}.tutorial-guide li{display:flex;align-items:flex-start;gap:14px}.tutorial-guide li>span{flex:none;padding-top:4px;color:#c5a36a;font:13px/1.7 'Courier New',monospace}.tutorial-guide li p{margin:0;font-size:16px;line-height:1.8;word-break:keep-all;overflow-wrap:anywhere}
+.tutorial-note{margin:24px 0;color:#b6bcab;font-size:13px;line-height:1.7}.tutorial-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px}.tutorial-actions .button{min-height:48px;font-size:15px}.tutorial-actions .text-button{min-height:44px;color:#d1c4a9;font-size:13px}
+.tutorial-skip{color:#dec78f!important}.scene-tools{flex-wrap:wrap}.topbar nav:has(.tutorial-skip){flex-wrap:wrap}
+@media(max-width:700px){.tutorial-guide{padding:24px}.tutorial-guide h2{font-size:23px;margin:20px 0}.tutorial-guide li p{font-size:15px}.tutorial-guide li{gap:10px}.tutorial-guide ol{gap:14px}.tutorial-actions{flex-direction:column;align-items:stretch}.tutorial-actions button{justify-content:center}.scene-tools:has(.tutorial-skip){gap:4px 14px}.scene-tools .tutorial-skip{font-size:12px}.topbar nav .tutorial-skip{font-size:12px}}
 
 /* Release integration: retain Minjo artwork and layouts, expose actual game actions. */
 a.title-menu-option{text-decoration:none}
@@ -355,14 +390,6 @@ a.title-menu-option{text-decoration:none}
 .scene-tools button{padding:7px 0;text-shadow:0 1px 4px #000}
 .scene-tools>span{color:#e4b96d}
 .role-select-header{padding-top:20px}
-.chat-tools{display:flex;flex-wrap:wrap;gap:10px;padding:9px 2px;flex:none;border-bottom:1px solid #c6b58733}
-.chat-tools button{font-size:11px;color:#d7c9ac;min-height:24px}
-.chat-tools button:last-child{margin-left:auto;color:#b5c4a8}
-.chat-zone-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;font-size:11px;color:#d7c9ac}
-.chat-zone-choice select{min-width:0;max-width:67%;padding:6px 8px;font-size:11px}
-.discussion-game .eve-panel .eve-hint{font-size:12px;line-height:1.55;color:#e5c796;margin:4px 0}
-.discussion-game .chat-composer{max-height:62%;overflow-y:auto;scrollbar-width:thin}
-.discussion-game .council-chat-log{min-height:95px}
 .report-briefing{top:54px}
 .title-screen-art{background-position:center}
 @media(max-width:700px){
@@ -384,9 +411,6 @@ a.title-menu-option{text-decoration:none}
  .briefing-mission-facts p,.briefing-role-note p,.briefing-eve-note p,.report-briefing .transmission>p{font-size:13px}
  .briefing-council-member small,.briefing-sensor-record summary,.briefing-sensor-record>div>div{font-size:11px}
  .title-logo{top:6%;width:88vw}.title-menu{left:6%;width:88%;bottom:12%}
- .discussion-game .intent-buttons button{font-size:11px;min-height:32px}
- .discussion-game .main-console{min-height:680px;height:calc(100svh - 18px)}
- .chat-tools{gap:8px}.chat-tools button:last-child{font-size:11px}
 }
 /* Reduced motion keeps decorative assets visible and inside their containers. */
 .transmission-ring{transform:translate(-50%,-50%);opacity:.18}
@@ -396,7 +420,6 @@ a.title-menu-option{text-decoration:none}
 .briefing-pins{inset:210px clamp(390px,28vw,500px) 170px 40px}
 @media(max-width:700px){.briefing-pins{inset:160px 14px auto;height:210px}.report-briefing::before{inset:-20px 0 -22px}.briefing-council-rail>div{max-width:100%}}
 
-.discussion-game .chat-composer .compose-bottom{position:sticky;bottom:0;background:#101410;padding-top:7px}
 @media(max-width:700px){.title-screen-bridge-fx{left:70%}.title-screen-transmit{left:16%}}
 
 .report-briefing::before{inset:0}.report-briefing::after{top:0;bottom:0}.briefing-sensor-record:not([open])>div{display:none}.briefing-role-note p{font-size:12px}

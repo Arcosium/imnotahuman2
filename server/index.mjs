@@ -50,7 +50,17 @@ app.post('/api/game/start',auth,asyncRoute(async(req,res)=>{
  const profile=store.profile(store.userById(req.user.id));const demo=req.user.role==='demo';if(!demo&&MASKS.find(m=>m.id===b.mask).unlock>profile.runs)throw new engine.GameError('아직 해금하지 않은 가면입니다.',403);
  if(b.daily&&store.dailyPlayed(req.user.id))throw new engine.GameError('오늘의 도전 기록은 이미 제출됐습니다. 내일 다시 도전하세요.',409);
  if(b.daily&&(b.mask!=='scribe'||demo))throw new engine.GameError('일일 도전은 일반 계정의 서기 가면으로 참여합니다.');
- const challengeDay=b.daily?kstDay():null;const g=engine.newGame({demo,challengeDay,mask:demo?'scribe':b.mask,scenario:demo?0:b.scenario,tier:b.daily?1:profile.tier,daily:b.daily,seed:demo?'demo-0':b.daily?`daily-${challengeDay}`:randomUUID(),memory:profile.memory});store.save(req.user.owner,g);res.json({game:engine.publicGame(g),ai:ai.statusFor(g)});
+ const challengeDay=b.daily?kstDay():null;const g=engine.newGame({demo,challengeDay,mask:demo?'scribe':b.mask,scenario:demo?0:b.scenario,tier:b.daily?1:profile.tier,daily:b.daily,seed:demo?'demo-0':b.daily?`daily-${challengeDay}`:randomUUID(),memory:profile.memory});store.save(req.user.owner,g);store.startTutorial(req.user,g);res.json({game:engine.publicGame(g),ai:ai.statusFor(g),user:safeUser(req.user)});
+}));
+const tutorialSchema=z.discriminatedUnion('action',[
+ z.object({runId:z.string().uuid(),action:z.literal('seen'),step:z.enum(['briefing','discussion','response','operation','verdict','reward','modules','event'])}).strict(),
+ z.object({runId:z.string().uuid(),action:z.literal('skip')}).strict(),
+]);
+app.post('/api/tutorial',auth,asyncRoute(async(req,res)=>{
+ if(req.user.role==='demo')throw new engine.GameError('시연 계정에서는 첫 플레이 안내를 저장하지 않습니다.',403);
+ const parsed=tutorialSchema.safeParse(req.body);if(!parsed.success)throw new engine.GameError('안내 저장 요청을 확인하세요.');
+ if(!store.updateTutorial(req.user,parsed.data))throw new engine.GameError('현재 판의 첫 플레이 안내가 아닙니다. 기록을 다시 불러오세요.',409);
+ res.json({user:safeUser(req.user)});
 }));
 const actionSchema=z.object({action:z.enum(['begin','event','talk','prepare','search','verdict','reward','module','reroll','draft','archive','abandon']),version:z.number().int().nonnegative(),text:z.string().trim().min(3).max(600).optional(),target:z.string().max(30).optional(),module:z.string().max(30).optional(),zone:z.string().max(30).optional(),vote:z.boolean().optional(),intent:z.string().max(100).optional()}).strict();
 app.post('/api/game/action',auth,asyncRoute(async(req,res)=>{

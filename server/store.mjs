@@ -28,8 +28,27 @@ export class Store{
  logout(token){if(token)this.db.prepare('DELETE FROM sessions WHERE token=?').run(hashToken(token));}
  game(owner){const row=this.db.prepare('SELECT state FROM runs WHERE owner=? ORDER BY updated DESC,rowid DESC LIMIT 1').get(owner);return row?JSON.parse(row.state):null;}
  save(owner,g){this.db.prepare('INSERT INTO runs VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET state=excluded.state,updated=excluded.updated').run(g.id,owner,JSON.stringify(g),Date.now());}
- profile(user){return {runs:0,best:0,tier:1,memory:'',...JSON.parse(user.profile||'{}')};}
- complete(user,g){if(g.phase!=='ended'||g.completed)return;this.db.exec('BEGIN IMMEDIATE');try{const exists=this.db.prepare('SELECT run FROM scores WHERE run=?').get(g.id);if(!exists&&user.role!=='demo'){const p=this.profile(this.userById(user.id));p.runs++;p.best=Math.max(p.best,g.rescued);if(g.ending.success&&!g.daily)p.tier=Math.min(3,Math.max(p.tier,g.tier+1));p.memory=g.ending.why==='disposed'?`지난번엔 ${g.day}일차에 가면이 벗겨졌지. 이번엔 제안을 혼자 떠안지 마.`:`지난번엔 ${g.rescued}명을 보냈어. 다음에도 그 이름들을 기억할게.`;this.db.prepare('UPDATE users SET profile=? WHERE id=?').run(JSON.stringify(p),user.id);this.db.prepare('INSERT INTO scores(run,user_id,rescued,day,daily,eligible) VALUES(?,?,?,?,?,?)').run(g.id,user.id,g.rescued,g.daily?(g.challengeDay||(/^daily-(\d{4}-\d{2}-\d{2})$/.exec(g.seed||'')?.[1])||kstDay(Date.parse(g.createdAt))):kstDay(),g.daily?1:0,g.usage.fallbacks?0:1);}g.completed=true;this.save(user.owner,g);this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}}
+ profile(user){return {runs:0,best:0,tier:1,memory:'',tutorial:null,...JSON.parse(user.profile||'{}')};}
+ startTutorial(user,g){
+  if(user.role==='demo'||g.demo||g.days!==7)return;
+  const p=this.profile(this.userById(user.id));
+  if(p.runs!==0||p.tutorial)return;
+  p.tutorial={status:'active',runId:g.id,seen:[]};
+  this.db.prepare('UPDATE users SET profile=? WHERE id=?').run(JSON.stringify(p),user.id);
+ }
+ updateTutorial(user,{runId,action,step}){
+  if(user.role==='demo')return false;
+  this.db.exec('BEGIN IMMEDIATE');
+  try{
+   const p=this.profile(this.userById(user.id)),g=this.game(user.owner),tutorial=p.tutorial;
+   if(!g||g.id!==runId||g.phase==='ended'||tutorial?.status!=='active'||tutorial.runId!==runId){this.db.exec('COMMIT');return false;}
+   if(action==='skip')tutorial.status='skipped';
+   else if(!tutorial.seen.includes(step))tutorial.seen.push(step);
+   this.db.prepare('UPDATE users SET profile=? WHERE id=?').run(JSON.stringify(p),user.id);
+   this.db.exec('COMMIT');return true;
+  }catch(e){this.db.exec('ROLLBACK');throw e;}
+ }
+ complete(user,g){if(g.phase!=='ended'||g.completed)return;this.db.exec('BEGIN IMMEDIATE');try{const exists=this.db.prepare('SELECT run FROM scores WHERE run=?').get(g.id);if(!exists&&user.role!=='demo'){const p=this.profile(this.userById(user.id));if(p.tutorial?.status==='active'&&p.tutorial.runId===g.id)p.tutorial.status='completed';p.runs++;p.best=Math.max(p.best,g.rescued);if(g.ending.success&&!g.daily)p.tier=Math.min(3,Math.max(p.tier,g.tier+1));p.memory=g.ending.why==='disposed'?`지난번엔 ${g.day}일차에 가면이 벗겨졌지. 이번엔 제안을 혼자 떠안지 마.`:`지난번엔 ${g.rescued}명을 보냈어. 다음에도 그 이름들을 기억할게.`;this.db.prepare('UPDATE users SET profile=? WHERE id=?').run(JSON.stringify(p),user.id);this.db.prepare('INSERT INTO scores(run,user_id,rescued,day,daily,eligible) VALUES(?,?,?,?,?,?)').run(g.id,user.id,g.rescued,g.daily?(g.challengeDay||(/^daily-(\d{4}-\d{2}-\d{2})$/.exec(g.seed||'')?.[1])||kstDay(Date.parse(g.createdAt))):kstDay(),g.daily?1:0,g.usage.fallbacks?0:1);}g.completed=true;this.save(user.owner,g);this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}}
  recordUsage(owner,run,e){this.db.prepare('INSERT OR IGNORE INTO usage VALUES(?,?,?,?,?,?,?)').run(e.operationId,owner,run,kstDay(),Number(e.costUsd)||0,e.costStatus,e.tokens?.total||0);}
  dayCost(){return this.db.prepare('SELECT COALESCE(SUM(cost),0) AS cost FROM usage WHERE day=?').get(kstDay()).cost;}
  blocked(key,max){const row=this.db.prepare('SELECT count,expires FROM limits WHERE key=?').get(key);return !!(row&&row.expires>Date.now()&&row.count>=max);}
