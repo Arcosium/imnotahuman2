@@ -88,22 +88,31 @@ export function storyLoss(g,zone,cause) {
   }
 }
 
-export function storyAfterSearch(g,zone,casualties) {
+export function storyAfterSearch(g,zone,casualties,rescued=0) {
   if(!g.story)return;
-  storyLoss(g,zone,'search');
-  for(const c of g.story.contacts.filter(c=>c.status==='alive'))entry(g,c,'after-search',voice(c.id)[casualties?'shaken':'safe']);
+  const affected=new Set();
+  for(const c of g.story.contacts.filter(c=>c.zone===zone&&c.status==='alive')){
+    affected.add(c.id);
+    if(rescued>0){c.status='rescued';c.rescuedDay=g.day;entry(g,c,'after-search',voice(c.id).safe);}
+    else{c.status='lost';c.lostDay=g.day;entry(g,c,'lost',`${c.name}의 회신이 수색 현장에서 끊겼다. ${voice(c.id).memory}`,false);}
+  }
+  for(const c of g.story.contacts.filter(c=>c.status==='alive'&&!affected.has(c.id)))entry(g,c,'after-search',voice(c.id)[casualties?'shaken':'safe']);
 }
 
 export function storyEnding(g,why) {
   if(!g.story)return;
   // Select precisely rescued people from the existing living population with an
   // independent seed. This assigns names to the outcome without changing it.
+  const newlyEscaped=why==='escape'?Math.floor(g.zones.reduce((n,z)=>n+z.people,0)*Math.max(0,1-g.patrol+(g.eveProtected?0.15:0))):0;
   const escaped=new Set(why==='escape'?g.zones.flatMap(z=>Array.from({length:z.people},(_,slot)=>`${z.id}:${slot}`))
-    .sort((a,b)=>rank(g.seed,`escape:${a}`).localeCompare(rank(g.seed,`escape:${b}`))).slice(0,g.rescued):[]);
+    .sort((a,b)=>rank(g.seed,`escape:${a}`).localeCompare(rank(g.seed,`escape:${b}`))).slice(0,newlyEscaped):[]);
   for(const c of g.story.contacts) {
     const v=voice(c.id);
     if(c.status==='lost') {
       entry(g,c,'ending',`${c.lostDay}일차에 끊긴 회선은 끝내 돌아오지 않았다. ${v.memory}`,false);
+    } else if(c.status==='rescued') {
+      c.status=why==='escape'?'escaped':'left';
+      entry(g,c,'ending',v[c.status]);
     } else if(why==='escape') {
       c.status=escaped.has(`${c.zone}:${c.slot}`)?'escaped':'left';
       entry(g,c,'ending',v[c.status]);

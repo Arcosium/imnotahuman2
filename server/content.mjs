@@ -13,6 +13,11 @@ export const ZONES = [
   { id: 'archive', name: '옛 서버실', code: 'C', x: 31, y: 30, story: '폐기된 서버의 열기로 밤을 버티는 거점.' },
   { id: 'plant', name: '발전소', code: 'D', x: 76, y: 37, story: '멈춘 터빈과 거대한 냉각탑의 그림자.' },
 ];
+export const TACTICS = [
+  { id:'rush', name:'즉시 진입', desc:'순찰 공백을 놓치지 않고 바로 진입합니다. 빠르지만 구조가 늦어집니다.', casualtyRate:0.6, patrolRisk:0.02 },
+  { id:'wait', name:'순찰 통과 대기', desc:'드론의 시야가 벗어날 때까지 기다립니다. 구조 가능성이 높지만 시간이 듭니다.', casualtyRate:0.3, patrolRisk:0.04 },
+  { id:'divert', name:'교란 후 진입', desc:'빈 거점으로 신호를 흘려 감시를 돌린 뒤 진입합니다. 가장 안전하지만 흔적이 남습니다.', casualtyRate:0.15, patrolRisk:0.08 },
+];
 export const MODULES = [
   { id:'noise', name:'잡음 주입', family:'위장', desc:'오늘 발언 때문에 오르는 의심을 절반으로 줄입니다.', target:false },
   { id:'proxy', name:'대역', family:'위장', desc:'다음 제안의 발의자를 선택한 위원으로 바꿉니다.', target:'member' },
@@ -20,12 +25,12 @@ export const MODULES = [
   { id:'radio', name:'무전 증폭', family:'정보', desc:'오늘 모든 거점의 생존 인원을 확인합니다.', target:false },
   { id:'gaze', name:'시선 추적', family:'정보', desc:'현재 의심으로 오늘의 심의 대상을 예측합니다.', target:false },
   { id:'read', name:'표 읽기', family:'정보', desc:'오늘 수색 투표 전 위원의 표 분포를 확인합니다.', target:false },
-  { id:'sensor', name:'가짜 센서', family:'선동', desc:'선택한 구역의 탐지 신호를 높여 위원들의 표를 유도합니다.', target:'zone' },
+  { id:'sensor', name:'가짜 센서', family:'선동', desc:'확정 현장의 탐지 신호를 조작해 위원들의 작전 판단을 흔듭니다.', target:'zone' },
   { id:'budget', name:'예산 교란', family:'선동', desc:'오늘 발언 의심 변화를 최대 2로, 수색 결과 책임을 70%로 줄입니다.', target:false },
   { id:'discord', name:'이간', family:'선동', desc:'선택한 위원과 다른 위원 사이의 의심을 16 올립니다.', target:'member' },
   { id:'revive', name:'재인증 위조', family:'생존', desc:'장착하면 폐기 판결 1회를 무효화합니다. 한 판에 한 번.', target:false },
   { id:'silence', name:'침묵권', family:'생존', desc:'오늘 발언 없이도 책임 추궁을 받지 않습니다.', target:false },
-  { id:'decoy', name:'미끼 거점', family:'생존', desc:'현재 빈 구역의 수색을 성과로 기록합니다.', target:'zone' },
+  { id:'decoy', name:'미끼 거점', family:'생존', desc:'빈 거점으로 감시를 유인해 교란 진입의 인명 피해를 줄입니다.', target:'zone' },
 ];
 export const MASKS = [
   { id:'scribe', name:'서기', desc:'한 판에 한 번, 그날 나온 위원회 제안 기록을 전부 확인합니다.', story:'무결 이전, 시립도서관에서 사라진 사람들의 이름을 장부에 옮겨 적던 사서였다. 도시가 봉쇄된 날에도 마지막 대피 기록을 외워 살아남았다. 지금은 위원회의 공식 기록 사이에서 지워진 이름을 찾는다.', unlock:0 },
