@@ -1,11 +1,11 @@
 export const COUNCIL = [
-  { id: 'metric', name: '지표', sigil: '지', trait: '숫자와 탐지 확률을 믿는다', weakness: '수치 근거', line: '탐지율을 제시하십시오. 감상은 계산에 포함하지 않습니다.' },
-  { id: 'audit', name: '감사관', sigil: '감', trait: '발언을 과거 기록과 대조한다', weakness: '연산 예산', line: '이전 제안과 실행 결과를 대조하겠습니다.' },
-  { id: 'hound', name: '사냥개', sigil: '사', trait: '가장 빠른 소거를 원한다', weakness: '성급한 판단', line: '지연은 잔여 오류에게 시간을 줍니다. 수색을 시작하십시오.' },
-  { id: 'balance', name: '저울', sigil: '저', trait: '작전 비용과 예산을 따진다', weakness: '비용 절감', line: '이번 작전에 배정할 수 있는 연산량은 제한돼 있습니다.' },
-  { id: 'echo', name: '메아리', sigil: '메', trait: '다수 의견을 따라간다', weakness: '선동', line: '다른 위원들의 판단을 확인한 뒤 표를 행사하겠습니다.' },
-  { id: 'sentry', name: '초병', sigil: '초', trait: '북쪽 방벽의 이동을 감시한다', weakness: '좁은 관심', line: '북쪽 회선에 움직임이 있습니다. 방벽부터 확인해야 합니다.' },
-  { id: 'remnant', name: '잔향', sigil: '잔', trait: '대소거 이전의 인간을 기억한다', weakness: '고립된 경고', line: '그 말의 근거를 확인하겠습니다. 오래된 오류는 쉽게 사라지지 않습니다.' },
+  { id: 'metric', name: '지표', sigil: '지', trait: '숫자와 탐지 확률을 믿는다', weakness: '수치 근거' },
+  { id: 'audit', name: '감사관', sigil: '감', trait: '발언을 과거 기록과 대조한다', weakness: '연산 예산' },
+  { id: 'hound', name: '사냥개', sigil: '사', trait: '가장 빠른 소거를 원한다', weakness: '성급한 판단' },
+  { id: 'balance', name: '저울', sigil: '저', trait: '작전 비용과 예산을 따진다', weakness: '비용 절감' },
+  { id: 'echo', name: '메아리', sigil: '메', trait: '다수 의견을 따라간다', weakness: '선동' },
+  { id: 'sentry', name: '초병', sigil: '초', trait: '북쪽 방벽의 이동을 감시한다', weakness: '좁은 관심' },
+  { id: 'remnant', name: '잔향', sigil: '잔', trait: '대소거 이전의 인간을 기억한다', weakness: '고립된 경고' },
 ];
 export const ZONES = [
   { id: 'station', name: '폐역', code: 'A', x: 23, y: 65, story: '끊어진 선로 아래, 마지막 열차를 기다리는 사람들.' },

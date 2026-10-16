@@ -11,15 +11,15 @@ export function message(g,author,text,source='rules'){g.messages.push({id:random
 function initMatrix(g){for(const c of g.council){g.suspicion[c.id]??={};for(const t of ['player',...g.council.map(c=>c.id)])if(t!==c.id)g.suspicion[c.id][t]??=t==='player'?24:18;}}
 export function change(g,observer,target,delta,reason,record){if(observer===target||!g.suspicion[observer]||!(target in g.suspicion[observer]))return;g.suspicion[observer][target]=clamp(g.suspicion[observer][target]+delta);if(target==='player')g.reasons[observer]={text:reason,record,delta};}
 export function newGame({demo=false,scenario=0,mask='scribe',tier=1,daily=false,challengeDay=null,seed=randomUUID(),memory=''}){
- const r=rng(seed),council=demo?COUNCIL.slice(0,5):shuffled(COUNCIL,r).slice(0,Math.min(7,4+tier));
+ const r=rng(seed),council=['hound','echo','audit'].map(id=>COUNCIL.find(c=>c.id===id)).filter(Boolean);
  const totals=demo?[42,36,34,28]:Array.from({length:4},()=>25+Math.floor(r()*21));
- const g={id:randomUUID(),seed,demo,daily,challengeDay,scenario,mask,tier:demo?1:tier,days:demo?3:7,day:1,phase:'report',version:0,council:council.map(c=>({...c,joinedDay:1})),suspicion:{},reasons:{},zones:ZONES.map((z,i)=>({...z,people:totals[i],signal:30+Math.floor(r()*56),cost:16+i*7,searched:false})),total:totals.reduce((a,b)=>a+b,0),lost:0,rescued:0,records:[],messages:[],claims:[],evaluated:[],modules:mask==='mechanic'?['sensor']:[],usedModules:[],effects:{},eve:true,eveProtected:false,patrol:0,revived:false,turns:0,eveCalls:0,preferences:{},proposedZone:null,event:null,eventResolved:true,offers:[],rerolled:false,usage:{requests:0,calls:0,tokens:0,costUsd:0,reported:0,estimated:0,missing:0,fallbacks:0,latencyMs:0,lastMs:0},ending:null,createdAt:new Date().toISOString(),previousMemory:memory,archiveUsed:false,completed:false};
+ const starterModules=['noise','discord','budget','forge'];const g={id:randomUUID(),seed,demo,daily,challengeDay,scenario,mask,tier:demo?1:tier,days:demo?3:7,day:1,phase:'report',version:0,council:council.map(c=>({...c,joinedDay:1})),suspicion:{},reasons:{},zones:ZONES.map((z,i)=>({...z,people:totals[i],signal:30+Math.floor(r()*56),cost:16+i*7,searched:false})),total:totals.reduce((a,b)=>a+b,0),lost:0,rescued:0,records:[],messages:[],claims:[],evaluated:[],modules:mask==='mechanic'?[...starterModules,'sensor']:[...starterModules],usedModules:[],effects:{},eve:true,eveProtected:false,patrol:0,revived:false,turns:0,eveCalls:0,openingDone:false,preferences:{},proposedZone:null,event:null,eventResolved:true,offers:[],rerolled:false,usage:{requests:0,calls:0,tokens:0,costUsd:0,reported:0,estimated:0,missing:0,fallbacks:0,latencyMs:0,lastMs:0},ending:null,createdAt:new Date().toISOString(),previousMemory:memory,archiveUsed:false,completed:false};
  // One initially empty zone creates an actionable false lead; redistribute rather than invent or lose people.
  const empty=demo?(scenario===1?0:3):Math.floor(r()*4);g.zones[(empty+1)%4].people+=g.zones[empty].people;g.zones[empty].people=0;
  initMatrix(g);createStory(g);startDay(g);return g;
 }
 export function living(g){return g.zones.reduce((s,z)=>s+z.people,0);}
-function startDay(g){const r=rng(`${g.seed}:day:${g.day}`);g.turns=0;g.eveCalls=0;g.claims=[];g.effects=g.reviveArmed?{revive:true}:{};g.proposedZone=null;g.preferences={};g.rerolled=false;g.nominee=null;g.verdict=null;g.operation=null;g.lastFeedback=null;g.lastModuleUse=null;g.phase='report';
+function startDay(g){const r=rng(`${g.seed}:day:${g.day}`);g.turns=0;g.eveCalls=0;g.openingDone=false;g.claims=[];g.effects=g.reviveArmed?{revive:true}:{};g.proposedZone=null;g.preferences={};g.rerolled=false;g.nominee=null;g.verdict=null;g.operation=null;g.lastFeedback=null;g.lastModuleUse=null;g.phase='report';
  for(const z of g.zones){z.signal=25+Math.floor(r()*65);z.audio=Math.max(0,Math.min(100,z.signal+Math.floor(r()*21)-10));z.searched=false;}
  // Signals are noisy, but cost and the private radio report are trustworthy.
  const empty=g.zones.filter(z=>!z.people);g.radioZone=empty.length?empty[Math.floor(r()*empty.length)].id:g.zones[Math.floor(r()*4)].id;
@@ -29,7 +29,7 @@ function startDay(g){const r=rng(`${g.seed}:day:${g.day}`);g.turns=0;g.eveCalls=
  const rec=evidence(g,'report',`${g.day}일차 센서 보고`,{signals:g.zones.map(z=>({id:z.id,signal:z.signal,audio:z.audio,cost:z.cost}))});
  if(g.day===1)message(g,'system','회선에 비정상 신호 1건. 전 위원은 소거 작전과 내부 검증을 동시에 수행하십시오.');
  else message(g,'system',`${g.day}일차 회의가 시작됐습니다.${g.event?' '+g.event.text:''}`);
- for(const c of g.council){g.preferences[c.id]=defaultPreference(g,c);if(g.day===1)message(g,c.id,c.line);}
+ for(const c of g.council)g.preferences[c.id]=defaultPreference(g,c);
  g.reportId=rec.id;storyMorning(g);
 }
 export function defaultPreference(g,c){const sorted=[...g.zones].sort((a,b)=>b.signal-a.signal);if(c.id==='balance')return [...g.zones].sort((a,b)=>a.cost-b.cost)[0].id;if(c.id==='sentry')return 'archive';return sorted[0].id;}

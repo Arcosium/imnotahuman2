@@ -44,7 +44,7 @@ app.post('/api/game/start',auth,asyncRoute(async(req,res)=>{
  if(b.daily&&(b.mask!=='scribe'||demo))throw new engine.GameError('일일 도전은 일반 계정의 서기 가면으로 참여합니다.');
  const challengeDay=b.daily?kstDay():null;const g=engine.newGame({demo,challengeDay,mask:demo?'scribe':b.mask,scenario:b.scenario,tier:b.daily?1:profile.tier,daily:b.daily,seed:demo?`demo-${b.scenario}`:b.daily?`daily-${challengeDay}`:randomUUID(),memory:profile.memory});store.save(req.user.owner,g);res.json({game:engine.publicGame(g),ai:ai.statusFor(g)});
 }));
-const actionSchema=z.object({action:z.enum(['begin','event','talk','prepare','search','verdict','reward','module','reroll','draft','archive','abandon']),version:z.number().int().nonnegative(),text:z.string().trim().min(3).max(600).optional(),target:z.string().max(30).optional(),module:z.string().max(30).optional(),zone:z.string().max(30).optional(),vote:z.boolean().optional(),intent:z.string().max(100).optional()}).strict();
+const actionSchema=z.object({action:z.enum(['begin','opening','event','talk','prepare','search','verdict','reward','module','reroll','draft','archive','abandon']),version:z.number().int().nonnegative(),text:z.string().trim().min(3).max(600).optional(),target:z.string().max(30).optional(),module:z.string().max(30).optional(),zone:z.string().max(30).optional(),vote:z.boolean().optional(),intent:z.string().max(100).optional()}).strict();
 app.post('/api/game/action',auth,asyncRoute(async(req,res)=>{
  const b=actionSchema.parse(req.body);const owner=req.user.owner;
  if(locks.has(owner))throw new engine.GameError('이전 선택을 처리하고 있습니다.',409);if(active>=8)throw new engine.GameError('위원회 회선이 혼잡합니다. 잠시 후 다시 시도하세요.',503);
@@ -54,6 +54,7 @@ app.post('/api/game/action',auth,asyncRoute(async(req,res)=>{
  try{
   switch(b.action){
    case 'begin':engine.beginDiscussion(g);break;
+   case 'opening':engine.requirePhase(g,'discussion');await ai.opening(owner,g);break;
    case 'event':engine.resolveEvent(g,b.target);break;
    case 'talk':{if(!b.text)throw new engine.GameError('발언을 입력하세요.');const rec=engine.addSpeech(g,b.text,b.zone);await ai.discuss(owner,g,rec);break;}
    case 'prepare':engine.prepareOperation(g);break;
