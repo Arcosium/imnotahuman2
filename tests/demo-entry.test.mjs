@@ -20,7 +20,7 @@ test('공개 시연 링크: 자동 로그인, 브라우저별 격리, 재방문 
  try{
   for(let i=0;i<100&&!ready.includes('listening');i++)await new Promise(resolve=>setTimeout(resolve,50));assert.match(ready,/The Last Vote listening/);
   const landing=await request('/demo',{headers:{Origin:'https://slides.example','Sec-Fetch-Site':'cross-site'}});
-  assert.equal(landing.status,200);assert.match(landing.body,/src="\/demo\/entry\.js"/);assert.equal(landing.headers.get('cache-control'),'no-store');assert.equal(landing.headers.get('set-cookie'),null);
+  assert.equal(landing.status,200);assert.match(landing.body,/src="\/demo\/entry\.js"/);assert.equal(landing.headers.get('cache-control'),'no-store, no-transform');assert.equal(landing.headers.get('set-cookie'),null);
   assert.ok(!landing.headers.get('content-security-policy').includes('upgrade-insecure-requests'));
   const script=await request('/demo/entry.js');assert.match(script.body,/fetch\('\/api\/demo\/login'/);assert.match(script.body,/method:'POST'/);assert.equal(script.headers.get('cache-control'),'no-store');
   const initial=new Store(dir);assert.equal(initial.db.prepare('SELECT COUNT(*) AS n FROM sessions').get().n,0);initial.db.close();

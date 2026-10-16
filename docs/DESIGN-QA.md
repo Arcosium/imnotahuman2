@@ -117,3 +117,21 @@ Figma Community의 Game UI Dark Fantasy RPG를 다시 검색하고 제작자 UXz
 운영 HTTPS에서 Chromium 데스크톱 5회·모바일 크기 3회 반복 경계를 기록했다. 경계 프레임 간격은 33.2~50ms로 24fps 재생 범위였고 stalled·ended·error, 페이지 예외, 가로 넘침은 없었다. 각 반복의 내부 seek에서 waiting 이벤트는 있었으나 프레임 재개 간격은 위 범위였다. 움직임 끄기·다시 켜기, 동작 줄이기 시 영상 요청 0건, 영상 요청 강제 실패 시 정지 배경도 확인했다. 모든 기기·브라우저와 불안정한 회선을 무조건 보장하는 결과는 아니다.
 
 근거: _workspace/lastvote/motion-qa/result.json 및 desktop.png·mobile.png, qa-title-motion-delivery/. 최종 check.py는 데스크톱·모바일 모두 결함 0건·Impeccable 0건이다. 원본과 생성·후처리 영수증은 vault/imnotahuman2/art/lastvote-motion-20261016에 보관했다.
+
+## 직업 이름 하단 잘림 수정 (2026-10-16)
+
+사용자가 시연 첫 화면의 ‘서기’ 이름 잘림을 제보했다. 원인은 카드 그림이 폭에 맞춰 정사각형으로 커지는 반면 행 높이는 데스크톱 50vh·모바일 250px로 제한된 데 있었다. 1920×900에서 카드 내부 높이는 448px인데 내용은 483px였고, 2560×1440 및 680×700에서도 같은 문제가 재현됐다. 이전 1440×900·390×844 검사로는 이 비율의 결함을 찾지 못했다.
+
+시각 방향은 사용자가 지정한 minjo의 어두운 관제실·기울어진 종이 카드·호박색 선택 표시를 유지했다. 이전에 참고한 [Figma Community RPG UI](https://forum.figma.com/showcase-your-work-14/dark-rpg-game-ui-system-special-for-figma-community-52684)를 재검색했고 Community 원본은 여전히 접근되지 않았다. 이번에는 새 시각 요소를 추가하지 않았다.
+
+| 위치 | Before | After | Why |
+|---|---|---|---|
+| 데스크톱 직업 카드 | 화면 높이에 따라 고정된 행에서 이름 잘림 | minmax(min-content, 기존 높이) | 그림과 이름이 차지하는 최소 높이 확보 |
+| 모바일·좁은 창 | 250px 고정 행에서 큰 그림이 이름을 밀어냄 | minmax(min-content, 250px) | 가로로 넓은 모바일·태블릿 창에서도 이름 보존 |
+| 자동 시연 진입 | 중간 HTML에 외부 측정 스크립트가 삽입되어 CSP 오류 | no-store에 no-transform 추가 | 기본 화면과 동일하게 응답 변형 방지 |
+
+운영 HTTPS에서 1440×900, 1366×768, 1920×900, 2560×1440, 1920×720, 680×700, 390×844, 320×640을 확인했다. 네 카드의 내용 높이·이름 하단이 카드 안에 들어가며 가로 스크롤은 없었다. 낮은 창에서는 세로 스크롤로 잠입 시작 버튼에 접근할 수 있다. 넓은 화면과 모바일 렌더를 직접 확인했고 서기 상세 보기·선택·잠입 시작도 통과했다. 페이지·콘솔 오류는 0건, 기존 자동 검사는 45개 통과했다.
+
+check.py를 수정 전후 실행했다. 최종 보고서의 회전 카드가 grid 경계를 5~8px 벗어난다는 두 항목과 그림자·광원 스타일 경고 여섯 항목은 원래의 카드 연출이다. 화면 밖 잘림이나 이름 잘림과 구분해 기록하며 원시 경고 0건으로 보고하지 않는다. 시연 진입의 CSP·요청 실패 네 항목은 해소됐다.
+
+근거: _workspace/role-card-overflow/before.json, before-*.png, after-*.png, verification.json, check-before/report.json, check-after/report.json, tests.log. 발표 PDF·PPT는 이 UI 수정으로 재생성하지 않았다.

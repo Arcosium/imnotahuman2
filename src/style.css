@@ -72,7 +72,7 @@
 .role-select-lobby::after{z-index:-1;background:linear-gradient(90deg,rgba(9,12,11,.62),rgba(10,12,11,.24) 48%,rgba(8,10,9,.48)),linear-gradient(0deg,rgba(8,10,9,.86),transparent 54%),radial-gradient(ellipse at 50% 40%,transparent 15%,rgba(7,9,8,.22) 82%)}
 .role-select-header{display:flex;align-items:flex-end;justify-content:flex-start;margin-bottom:clamp(18px,2.8vh,30px)}
 .role-select-header h1{font-size:clamp(44px,3.8vw,64px);font-weight:650;letter-spacing:-.055em;color:#eee9dc;text-shadow:0 3px 16px #0008}
-.role-card-grid{display:grid;width:100%;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:clamp(300px,50vh,540px);gap:clamp(8px,.9vw,18px);align-items:stretch;justify-items:center}
+.role-card-grid{display:grid;width:100%;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:minmax(min-content,clamp(300px,50vh,540px));gap:clamp(8px,.9vw,18px);align-items:stretch;justify-items:center}
 .role-card{position:relative;display:flex;width:100%;max-width:560px;height:100%;flex-direction:column;min-width:0;min-height:0;aspect-ratio:auto;padding:8px;overflow:hidden;border:1px solid #e0dacd;background:#cbc6b9;color:#23241f;text-align:left;box-shadow:0 18px 42px rgba(0,0,0,.48);transform:rotate(var(--card-angle,0deg)) translateY(var(--card-rest,0px));transition:border-color .16s,background .16s,transform .2s,box-shadow .16s}
 .role-card:nth-child(1){--card-angle:-1.8deg;--card-rest:7px}.role-card:nth-child(2){--card-angle:1.5deg;--card-rest:-5px}.role-card:nth-child(3){--card-angle:-1.2deg;--card-rest:4px}.role-card:nth-child(4){--card-angle:2deg;--card-rest:-8px}
 .role-art-placeholder{position:relative;display:block;flex:0 0 auto;aspect-ratio:1/1;min-height:0;background-color:#181b18;background-repeat:no-repeat;background-size:auto 200%;border-bottom:1px solid rgba(61,59,51,.55);filter:grayscale(.48) contrast(1.06)}
@@ -370,7 +370,7 @@ a.title-menu-option{text-decoration:none}
  .scene-tools>span{margin-right:auto}
  .role-select-lobby{min-height:calc(100svh - 50px);padding:22px 20px 28px}
  .role-select-header{padding-top:0}.role-select-header h1{font-size:36px}
- .role-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:250px;gap:18px 12px;margin:8px 0 28px}
+ .role-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(min-content,250px);gap:18px 12px;margin:8px 0 28px}
  .role-card{padding:5px}.role-card-name{font-size:19px}.role-card-body{padding:7px 9px}
  .role-card-lock-badge{padding:8px 10px;font-size:11px;letter-spacing:.06em}
  .role-select-actions{flex-wrap:wrap;gap:16px}.role-actions{width:100%}.role-start{width:100%}
