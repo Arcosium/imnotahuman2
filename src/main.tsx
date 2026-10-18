@@ -60,7 +60,7 @@ const task={report:'확정 현장의 보고를 확인하고 오늘의 회의에 
 const councilPortraits:any={metric:councilMetric,audit:councilAudit,hound:councilHound,balance:councilBalance,sentry:councilSentry,echo:councilEcho,remnant:councilRemnant};
 const councilFullbodyImages:any={metric:metricFullbody,audit:auditFullbody,hound:houndFullbody,balance:balanceFullbody,echo:echoFullbody,remnant:remnantFullbody,sentry:remnantFullbody};
 async function api(path,body?:any){const r=await fetch('/api/'+path,{credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},method:body?'POST':'GET',body:body?JSON.stringify(body):undefined});const result=await r.json();if(!r.ok){const e:any=new Error(result.error||'회선 연결을 확인하세요.');e.status=r.status;throw e;}return result;}
-function Brand(){return <span className="brand"><span className="brand-mark" aria-hidden="true">Ⅱ</span><span>THE LAST VOTE<small>소거 위원회</small></span></span>;}
+function Brand(){return <span className="brand"><span>THE LAST VOTE<small>소거 위원회</small></span></span>;}
 function TitleLogo(){return <div className="title-logo"><img src={titleLogo} alt="THE LAST VOTE" /></div>;}
 function CouncilAvatar({member}:any){const portrait=member&&councilPortraits[member.id];return portrait?<span className="sigil council-avatar"><img src={portrait} alt=""/></span>:<span className="sigil">{member?.sigil||'·'}</span>; }
 function SuspicionStrip({member,active=false}:any){if(!member)return null;return <div className={'battle-suspicion-mini'+(active?' active':'')} role="meter" aria-label={`${member.name}의 플레이어 의심도`} aria-valuenow={member.suspicion} aria-valuemin={0} aria-valuemax={100}><small>나를 의심</small><span><i style={{width:`${member.suspicion}%`}}/></span><b>{member.suspicion}</b><em>/100</em></div>;}
