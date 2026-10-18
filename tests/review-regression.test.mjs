@@ -30,14 +30,14 @@ test('누락된 도구 실행은 중복 대체 집계 없이 한 번만 서버 �
  const g=make(),service=ai();service.withProject=async()=>{throw new Error('provider_down');};speech(g);e.prepareOperation(g);await service.operation('owner',g,'rush');assert.equal(g.usage.fallbacks,1);assert.equal(g.toolReceipts.length,1);await service.verdict('owner',g,false);assert.equal(g.usage.fallbacks,2);assert.equal(g.toolReceipts.length,2);
 });
 test('일일 도전은 시작일에 귀속되고 대체 진행은 순위 제외 및 재도전 허용',async()=>{
- const base=process.env.TEST_PRIVATE_DIR||'/home/arcosium/vault/imnotahuman2/tests';mkdirSync(base,{recursive:true});const dir=mkdtempSync(join(base,'scores-'));const store=new Store(dir);
+ const base=process.env.TEST_PRIVATE_DIR||'/home/arcosium/vault/thelastvote/tests';mkdirSync(base,{recursive:true});const dir=mkdtempSync(join(base,'scores-'));const store=new Store(dir);
  try{let user=await store.createUser('score_test','isolated-test-only');user={...user,owner:user.id};const yesterday=kstDay(Date.now()-86400000);const g=e.newGame({daily:true,challengeDay:yesterday});e.endGame(g,'escape');store.complete(user,g);assert.equal(store.db.prepare('SELECT day FROM scores WHERE run=?').get(g.id).day,yesterday);assert.equal(store.dailyPlayed(user.id),false);
  const fallback=e.newGame({daily:true,challengeDay:kstDay()});fallback.usage.fallbacks=1;e.endGame(fallback,'escape');store.complete(user,fallback);assert.equal(store.dailyPlayed(user.id),false);assert.equal(store.leaderboard()[0].score,g.rescued);
  const actual=e.newGame({daily:true,challengeDay:kstDay()});e.endGame(actual,'escape');store.complete(user,actual);assert.equal(store.dailyPlayed(user.id),true);assert.equal(store.leaderboard()[0].score,g.rescued+actual.rescued);store.complete(user,actual);assert.equal(store.profile(store.userById(user.id)).runs,3);
  }finally{store.db.close();rmSync(dir,{recursive:true,force:true});}
 });
 test('이전 scores 스키마 마이그레이션은 데이터 보존 및 재실행 가능',()=>{
- const base=process.env.TEST_PRIVATE_DIR||'/home/arcosium/vault/imnotahuman2/tests';mkdirSync(base,{recursive:true});const dir=mkdtempSync(join(base,'migration-'));const db=new DatabaseSync(join(dir,'game.sqlite'));db.exec("CREATE TABLE scores(run TEXT PRIMARY KEY,user_id TEXT,rescued INTEGER,day TEXT,daily INTEGER);INSERT INTO scores VALUES('old','user',5,'2026-10-01',1)");db.close();
+ const base=process.env.TEST_PRIVATE_DIR||'/home/arcosium/vault/thelastvote/tests';mkdirSync(base,{recursive:true});const dir=mkdtempSync(join(base,'migration-'));const db=new DatabaseSync(join(dir,'game.sqlite'));db.exec("CREATE TABLE scores(run TEXT PRIMARY KEY,user_id TEXT,rescued INTEGER,day TEXT,daily INTEGER);INSERT INTO scores VALUES('old','user',5,'2026-10-01',1)");db.close();
  try{for(let i=0;i<2;i++){const s=new Store(dir);assert.equal(s.db.prepare('SELECT eligible FROM scores WHERE run=?').get('old').eligible,1);s.db.close();}}finally{rmSync(dir,{recursive:true,force:true});}
 });
 

@@ -116,7 +116,7 @@ Figma Community의 Game UI Dark Fantasy RPG를 다시 검색하고 제작자 UXz
 
 운영 HTTPS에서 Chromium 데스크톱 5회·모바일 크기 3회 반복 경계를 기록했다. 경계 프레임 간격은 33.2~50ms로 24fps 재생 범위였고 stalled·ended·error, 페이지 예외, 가로 넘침은 없었다. 각 반복의 내부 seek에서 waiting 이벤트는 있었으나 프레임 재개 간격은 위 범위였다. 움직임 끄기·다시 켜기, 동작 줄이기 시 영상 요청 0건, 영상 요청 강제 실패 시 정지 배경도 확인했다. 모든 기기·브라우저와 불안정한 회선을 무조건 보장하는 결과는 아니다.
 
-근거: _workspace/lastvote/motion-qa/result.json 및 desktop.png·mobile.png, qa-title-motion-delivery/. 최종 check.py는 데스크톱·모바일 모두 결함 0건·Impeccable 0건이다. 원본과 생성·후처리 영수증은 vault/imnotahuman2/art/lastvote-motion-20261016에 보관했다.
+근거: _workspace/lastvote/motion-qa/result.json 및 desktop.png·mobile.png, qa-title-motion-delivery/. 최종 check.py는 데스크톱·모바일 모두 결함 0건·Impeccable 0건이다. 원본과 생성·후처리 영수증은 vault/thelastvote/art/lastvote-motion-20261016에 보관했다.
 
 ## 직업 이름 하단 잘림 수정 (2026-10-16)
 

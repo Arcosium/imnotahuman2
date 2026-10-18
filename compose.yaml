@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    image: imnotahuman2:local
+    image: thelastvote:local
     env_file:
       - .env
     environment:
