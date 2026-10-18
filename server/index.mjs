@@ -14,6 +14,8 @@ const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const dataDir=resolve(process.env.DATA_DIR||join(root,'data'));
 const store=new Store(dataDir);const ai=new GameAI({dataDir,recordUsage:(...args)=>store.recordUsage(...args),available:()=>store.dayCost()<Number(process.env.DAILY_AI_BUDGET_USD||5)});
 const app=express();const locks=new Set();let active=0;
+// Hackathon ended. Keep the demo implementation dormant for an explicit future event.
+const demoEnabled=process.env.ENABLE_HACKATHON_DEMO==='1';
 app.disable('x-powered-by');app.set('trust proxy','loopback');
 const helmetOptions={contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'","'unsafe-inline'"],imgSrc:["'self'","data:"],fontSrc:["'self'"],connectSrc:["'self'"],frameAncestors:["'none'"],upgradeInsecureRequests:null}},crossOriginEmbedderPolicy:false};
 app.use((req,res,next)=>helmet({...helmetOptions,hsts:req.secure?undefined:false})(req,res,next));
@@ -21,12 +23,14 @@ app.use(express.json({limit:'12kb'}));app.use(cookieParser());
 app.use('/api',(req,res,next)=>{res.setHeader('Cache-Control','no-store');if(req.method!=='GET'){const origin=req.get('origin');const allowed=new Set(['https://thelastvote.ai-ve.uk','https://imnotahuman2.ai-ve.uk',`http://127.0.0.1:${process.env.PORT||8682}`,`http://127.0.0.1.sslip.io:${process.env.PORT||8682}`,'http://localhost:5173','http://127.0.0.1:5173']);if(origin&&!allowed.has(origin))return res.status(403).json({error:'허용되지 않은 요청 출처입니다.'});if(req.get('sec-fetch-site')==='cross-site')return res.status(403).json({error:'다른 사이트에서 보낸 요청은 허용되지 않습니다.'});}next();});
 const asyncRoute=fn=>(req,res,next)=>Promise.resolve(fn(req,res)).catch(next);
 const ip=req=>hashToken(req.get('cf-connecting-ip')||req.ip||'unknown');
-const currentUser=req=>{const demo=store.resolve(req.cookies.inh2_demo_session);return demo?.role==='demo'?demo:store.resolve(req.cookies.inh2_session);};
+const currentUser=req=>{if(demoEnabled){const demo=store.resolve(req.cookies.inh2_demo_session);if(demo?.role==='demo')return demo;}const user=store.resolve(req.cookies.inh2_session);return user?.role==='demo'&&!demoEnabled?null:user;};
+app.use((req,res,next)=>{if(!demoEnabled&&req.cookies.inh2_demo_session)res.clearCookie('inh2_demo_session',{path:'/'});next();});
+app.use(['/api/demo','/demo'],(req,res,next)=>{if(demoEnabled)return next();res.setHeader('Cache-Control','no-store');if(req.path==='/entry.js')return res.status(410).type('application/javascript').send('// Hackathon demo retired.');if(req.originalUrl.startsWith('/api/'))return res.status(410).json({error:'해커톤 시연이 종료됐습니다. 일반 계정으로 접속하세요.'});res.status(410).type('html').send('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Last Vote</title><body><h1>시연이 종료됐습니다</h1><p>일반 계정으로 게임을 이어갈 수 있습니다.</p><a href="/">게임으로 이동</a></body></html>');});
 const auth=(req,res,next)=>{req.user=currentUser(req);if(!req.user)return res.status(401).json({error:'로그인이 필요합니다.'});next();};
 const safeUser=u=>({username:u.username,role:u.role,profile:store.profile(store.userById(u.id))});
 const authSchema=z.object({username:z.string().regex(/^[a-zA-Z0-9_]{3,24}$/),password:z.string().min(8).max(128)}).strict();
 app.get('/api/health',(req,res)=>res.json({ok:true,ai:{mode:ai.status.mode},version:'1.0.0'}));
-app.get('/api/catalog',(req,res)=>res.json({council:COUNCIL,modules:MODULES,masks:MASKS,phases:PHASE_LABELS,zones:ZONES,tactics:TACTICS}));
+app.get('/api/catalog',(req,res)=>res.json({council:COUNCIL,modules:MODULES,masks:MASKS,phases:PHASE_LABELS,zones:ZONES,tactics:TACTICS,demoEnabled}));
 app.get('/api/me',(req,res)=>{const user=currentUser(req);res.json({user:user?safeUser(user):null});});
 app.post('/api/register',asyncRoute(async(req,res)=>{if(!store.throttle('register:'+ip(req),5,3600000))throw new engine.GameError('가입 요청이 많습니다. 잠시 후 다시 시도하세요.',429);const body=authSchema.parse(req.body);if(body.password.length<10)throw new engine.GameError('비밀번호는 10자 이상 입력하세요.');if(['demo','admin','judge'].includes(body.username.toLowerCase()))throw new engine.GameError('예약된 아이디입니다.');let user;try{user=await store.createUser(body.username.toLowerCase(),body.password);}catch(e){if(String(e.code).includes('SQLITE'))throw new engine.GameError('이미 사용 중인 아이디입니다.',409);throw e;}setSession(req,res,user);res.status(201).json({user:safeUser(user)});}));
 function writeSession(req,res,user,name){const token=store.session(user);res.cookie(name,token,{httpOnly:true,sameSite:'strict',secure:req.secure||req.get('x-forwarded-proto')==='https',maxAge:7*86400000,path:'/'});return token;}
@@ -36,7 +40,7 @@ app.post('/api/demo/login',asyncRoute(async(req,res)=>{
  if(!store.throttle('demo-entry:'+ip(req),600,600000))throw new engine.GameError('시연 접속이 많습니다. 잠시 후 다시 시도하세요.',429);
  const demo=await store.demoUser();writeSession(req,res,demo,'inh2_demo_session');res.json({user:safeUser(demo)});
 }));
-app.post('/api/login',asyncRoute(async(req,res)=>{if(!store.throttle('login-burst:'+ip(req),120,600000)||store.blocked('login-failed:'+ip(req),15))throw new engine.GameError('로그인 시도가 많습니다. 10분 뒤 다시 시도하세요.',429);const {username,password}=authSchema.parse(req.body);const user=await store.login(username.toLowerCase(),password);if(!user){store.throttle('login-failed:'+ip(req),15,600000);throw new engine.GameError('아이디 또는 비밀번호를 확인하세요.',401);}setSession(req,res,user);res.json({user:safeUser(user)});}));
+app.post('/api/login',asyncRoute(async(req,res)=>{if(!store.throttle('login-burst:'+ip(req),120,600000)||store.blocked('login-failed:'+ip(req),15))throw new engine.GameError('로그인 시도가 많습니다. 10분 뒤 다시 시도하세요.',429);const {username,password}=authSchema.parse(req.body);const user=await store.login(username.toLowerCase(),password);if(!user){store.throttle('login-failed:'+ip(req),15,600000);throw new engine.GameError('아이디 또는 비밀번호를 확인하세요.',401);}if(user.role==='demo'&&!demoEnabled)throw new engine.GameError('해커톤 시연이 종료됐습니다. 일반 계정으로 접속하세요.',410);setSession(req,res,user);res.json({user:safeUser(user)});}));
 app.post('/api/demo',asyncRoute(async(req,res)=>{
  z.object({}).strict().parse(req.body);
  let session=currentUser(req);

@@ -14,7 +14,7 @@ async function unusedPort(){const server=createServer();server.listen(0,'127.0.0
 test('공개 시연 링크: 자동 로그인, 브라우저별 격리, 재방문 보존과 일반 계정 복귀',{timeout:40000},async()=>{
  const base=process.env.TEST_PRIVATE_DIR||join(homedir(),'vault/imnotahuman2/tests');mkdirSync(base,{recursive:true,mode:0o700});
  const dir=mkdtempSync(join(base,'demo-entry-')),port=await unusedPort(),origin=`http://127.0.0.1:${port}`;
- const child=spawn(process.execPath,['server/index.mjs'],{cwd:process.cwd(),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DATA_DIR:dir,AI_OFFLINE:'1'},stdio:'pipe'});
+ const child=spawn(process.execPath,['server/index.mjs'],{cwd:process.cwd(),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DATA_DIR:dir,AI_OFFLINE:'1',ENABLE_HACKATHON_DEMO:'1'},stdio:'pipe'});
  let ready='';child.stdout.on('data',chunk=>ready+=chunk);child.stderr.on('data',()=>{});
  const request=async(path,{body,cookie='',headers={}}={})=>{const response=await fetch(origin+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json',cookie,Origin:origin,...headers},body:body===undefined?undefined:JSON.stringify(body)});const text=await response.text();return {status:response.status,headers:response.headers,body:response.headers.get('content-type')?.includes('json')?JSON.parse(text):text,cookie:response.headers.getSetCookie().find(v=>!v.includes('Expires=Thu, 01 Jan 1970'))?.split(';')[0]};};
  try{

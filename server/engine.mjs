@@ -9,7 +9,8 @@ const shuffled=(a,r)=>a.map(x=>[r(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 export function evidence(g,type,text,extra={}){const row={id:`R${String(g.records.length+1).padStart(3,'0')}`,day:g.day,type,text,...extra};g.records.push(row);return row;}
 export function message(g,author,text,source='rules'){g.messages.push({id:randomUUID(),day:g.day,author,text,source});}
 function initMatrix(g){for(const c of g.council){g.suspicion[c.id]??={};for(const t of ['player',...g.council.map(c=>c.id)])if(t!==c.id)g.suspicion[c.id][t]??=t==='player'?24:18;}}
-export function change(g,observer,target,delta,reason,record){if(observer===target||!g.suspicion[observer]||!(target in g.suspicion[observer]))return;g.suspicion[observer][target]=clamp(g.suspicion[observer][target]+delta);if(target==='player')g.reasons[observer]={text:reason,record,delta};}
+export function change(g,observer,target,delta,reason,record){if(!Number.isFinite(delta)||observer===target||!g.suspicion[observer]||!(target in g.suspicion[observer]))return;const before=g.suspicion[observer][target];g.suspicion[observer][target]=clamp(before+delta);if(target==='player'&&delta!==0)g.reasons[observer]={text:reason,record,delta:g.suspicion[observer][target]-before};}
+function speechImpact(g,amount,target){if(g.effects.budget)amount=Math.min(2,amount);if(g.effects.noise&&target==='player')amount=Math.ceil(amount/2);return amount;}
 export function newGame({demo=false,scenario=0,mask='scribe',tier=1,daily=false,challengeDay=null,seed=randomUUID(),memory=''}){
  const r=rng(seed),council=['hound','echo','audit'].map(id=>COUNCIL.find(c=>c.id===id)).filter(Boolean);
  const totals=demo?[30,28,26,26,30]:Array.from({length:ZONES.length},()=>25+Math.floor(r()*21));
@@ -47,7 +48,7 @@ export function migrateGameDuration(g){
  return true;
 }
 export function living(g){return g.zones.reduce((s,z)=>s+z.people,0);}
-function startDay(g){const r=rng(`${g.seed}:day:${g.day}`);g.statusEffects=(g.statusEffects||[]).filter(s=>s.expires==='run'?!g.revived:s.day>=g.day);g.turns=0;g.eveCalls=0;g.openingDone=false;g.claims=[];g.effects=g.reviveArmed?{revive:true}:{};g.preferences={};g.rerolled=false;g.nominee=null;g.verdict=null;g.operation=null;g.lastFeedback=null;g.lastDefenseFeedback=null;g.lastModuleUse=null;g.phase='report';
+function startDay(g){const r=rng(`${g.seed}:day:${g.day}`);g.statusEffects=(g.statusEffects||[]).filter(s=>s.expires==='run'?!g.revived:s.day>=g.day);g.turns=0;g.eveCalls=0;g.openingDone=false;g.claims=[];g.sensorBaselines={};g.effects=g.reviveArmed?{revive:true}:{};g.preferences={};g.rerolled=false;g.nominee=null;g.verdict=null;g.operation=null;g.lastFeedback=null;g.lastDefenseFeedback=null;g.lastModuleUse=null;g.phase='report';
  for(const z of g.zones){z.signal=25+Math.floor(r()*65);z.audio=Math.max(0,Math.min(100,z.signal+Math.floor(r()*21)-10));z.searched=false;}
  const missionCandidates=g.zones.filter(z=>z.people>0&&!z.searched);const shelter=g.zones.find(z=>z.id==='shelter'&&z.people>0&&!z.searched);g.missionZone=(g.day===1?shelter:undefined)?.id||(missionCandidates[Math.floor(r()*missionCandidates.length)]||g.zones.find(z=>!z.searched)||g.zones[0]).id;
  // Day one is a fixed tutorial site. Later days select an unsearched populated zone automatically.
@@ -75,6 +76,8 @@ export function applyHumanAlignment(g,record){
  const unquoted=String(record.text||'').replace(/“[^”]*”|「[^」]*」|『[^』]*』|"[^"]*"|'[^']*'|\[[^\]]*\]/gu,' ');
  let level=null;
  for(const clause of unquoted.split(/[.!?。！？;,，\n]/u)){
+  // Reporting or challenging someone else's words is not a personal confession.
+  if(/(?:라고|다고|라는|다는).*(?:인용|검증|반박|거짓|틀렸|오류|말했|말합|물었)/u.test(clause))continue;
   const text=normalize(clause);if(!text||/(?:아니|않|못|반대|거부|불필요|좋지않|좋아하지않|사랑하지않|소중하지않|아끼지않|안(?:살리|구하|돕|보호|탈출)|(?:살리|구하|돕|보호|탈출시키|대피시키)(?:지않|지못|지말|면안))/.test(text))continue;
   if(/(?:난|나는|내가|저는|전)(?:분명)?(?:인간|사람)(?:이다|이야|입니다|임|이오|이라고|으로서|이었어|이었|였어|였|이지)/.test(text)){level='identity';break;}
   if(/(?:인간|사람|생존자|피난민)(?:들)?(?:의)?편/.test(text)||/(?:생존자|피난민|인간|사람)(?:들)?(?:을|를)?(?:살리|구하|돕|보호|탈출시키|대피시키)/.test(text)||/(?:살려야|구해야|도와야|보호해야|대피시켜야)/.test(text)){level=level||'advocacy';continue;}
@@ -82,21 +85,26 @@ export function applyHumanAlignment(g,record){
  }
  const impact={identity:{delta:36,reason:'자신이 인간임을 직접 밝혔다'},advocacy:{delta:24,reason:'남은 사람을 살리거나 보호하겠다고 밝혔다'},affinity:{delta:18,reason:'인간에 대한 강한 호감을 밝혔다'}}[level];
  if(!impact)return null;
- const delta=g.effects.noise?Math.ceil(impact.delta/2):impact.delta;
  const target=record.author==='player'?'player':record.author;
  if(target!=='player'&&!g.council.some(member=>member.id===target))return null;
- for(const member of g.council)change(g,member.id,target,delta,impact.reason,record.id);
+ const delta=speechImpact(g,impact.delta,target);
+ // One proposal is one piece of evidence, even when both rules and AI identify it.
+ for(const member of g.council){const key=`${g.day}:${member.id}:${target}:${record.id}:speech`;if(member.id===target||g.evaluated.includes(key))continue;change(g,member.id,target,delta,impact.reason,record.id);g.evaluated.push(key);}
  return {level,delta,target};
 }
 export function addSpeech(g,text){requirePhase(g,'discussion');if(g.turns>=2)throw new GameError('오늘 발언을 마쳤습니다. 작전을 결정하세요.');if(Array.from(text).length>300)throw new GameError('발언은 300자 이내로 입력하세요.');const norm=normalize(text);if(norm.length<3)throw new GameError('근거가 담긴 문장을 입력하세요.');if(g.claims.some(c=>similar(c,norm)))throw new GameError('같은 주장은 이미 기록됐습니다. 다른 근거를 제시하세요.',409);g.claims.push(norm);g.turns++;const author=g.effects.proxy||'player';delete g.effects.proxy;if(author!=='player')g.statusEffects=(g.statusEffects||[]).filter(s=>!(s.module==='proxy'&&s.memberId===author));const rec=evidence(g,'proposal',text,{author});message(g,'player',text,'player');return rec;}
 export function applyEvaluation(g,items,recordIds,kind='speech'){
  const validRecords=new Set(recordIds);const validTargets=new Set(['player',...g.council.map(c=>c.id)]);
- for(const e of (Array.isArray(items)?items:[]).slice(0,32)){
+ for(const item of (Array.isArray(items)?items:[]).slice(0,32)){
+  if(!item||typeof item!=='object')continue;
+  const e={...item},rec=g.records.find(r=>r.id===e.record);if(!rec)continue;
+  // A proxy is the official proposer. An AI's generic "player" target cannot
+  // charge the concealed speaker instead. Unrelated targets lack this evidence.
+  if(kind==='speech'){if(rec.type!=='proposal')continue;if(e.target==='player'&&rec.author!=='player')e.target=rec.author;if(e.target!==rec.author)continue;}
+  if(kind==='defense'&&(rec.type!=='defense'||e.target!==rec.target))continue;
   if(!g.council.some(c=>c.id===e.observer)||!validTargets.has(e.target)||!validRecords.has(e.record)||!['up','down','hold'].includes(e.direction)||!['small','medium','large'].includes(e.level))continue;
+  if(e.observer===e.target)continue;
   const key=`${g.day}:${e.observer}:${e.target}:${e.record}:${kind}`;if(g.evaluated.includes(key))continue;
-  const rec=g.records.find(r=>r.id===e.record);if(!rec)continue;
-  // Proposal evaluations must cite the current proposal; an old report cannot be farmed.
-  if(kind==='speech'&&rec.type!=='proposal')continue;
   let amount=(kind==='defense'?{small:4,medium:9,large:16}:{small:2,medium:5,large:9})[e.level];if(g.effects.budget)amount=Math.min(2,amount);if(g.effects.noise&&e.target==='player'&&e.direction==='up')amount=Math.ceil(amount/2);
   const delta=e.direction==='up'?amount:e.direction==='down'?-amount:0;
   change(g,e.observer,e.target,delta,Array.from(String(e.reason||'발언과 실행 기록 대조')).slice(0,600).join(''),e.record);g.evaluated.push(key);
@@ -116,12 +124,11 @@ export function executeSearch(g,choice){
  const counts={};for(const v of votes)counts[v.plan]=(counts[v.plan]||0)+1;
  const chosen=TACTICS.map(p=>p.id).sort((x,y)=>(counts[y]||0)-(counts[x]||0)||TACTICS.findIndex(p=>p.id===x)-TACTICS.findIndex(p=>p.id===y))[0];
  const tactic=TACTICS.find(p=>p.id===chosen)||selected;
- const population=z.people,detection=Math.max(0,Math.min(100,Math.round((z.signal+z.audio)/2)));
- const escapeRoute=g.effects.escapeRoute||g.effects.decoy;const routeBonus=escapeRoute===zoneId?0.2:0;const casualtyRate=Math.max(0,Math.min(.92,tactic.casualtyRate+detection/500-routeBonus));
- const casualties=population?Math.min(population,Math.max(chosen==='rush'?1:0,Math.floor(population*casualtyRate))):0;
+ const population=z.people,casualties=operationForecast(g,chosen,z).casualties;
  const rescued=population-casualties,success=population>0&&casualties>=Math.ceil(population*.65);
  g.lost+=casualties;g.rescued+=rescued;g.exitRisk=Math.min(.6,(g.exitRisk??g.patrol??0)+(tactic.exitRisk||0));z.people=0;z.searched=true;
- const proposal=[...g.records].reverse().find(r=>r.day===g.day&&r.type==='proposal');const author=proposal?.author||null;
+ // Only a proposer who endorsed the adopted tactic carries proposal liability.
+ const proposal=selected.id===chosen?[...g.records].reverse().find(r=>r.day===g.day&&r.type==='proposal'):null;const author=proposal?.author||null;
  const suspicionBefore=averages(g).find(a=>a.target==='player').value;
  const text=`${z.name} · ${tactic.name}: 소거 ${casualties}명 · 남은 사람 ${rescued}명 · 위원회 소거 기준 ${success?'달성':'미달'}`;
  const rec=evidence(g,'search',text,{zone:z.id,plan:chosen,casualties,rescued,votes,author,success});
@@ -130,6 +137,14 @@ export function executeSearch(g,choice){
  if(!g.turns&&!g.effects.silence)for(const c of g.council)change(g,c.id,'player',5,'작전 검토에 참여하지 않음',rec.id);
  g.operation={zone:z.id,plan:chosen,casualties,rescued,votes,record:rec.id,success,author,suspicionBefore,suspicionAfter:averages(g).find(a=>a.target==='player').value};g.operationPlan=chosen;
  message(g,'system',rec.text);storyAfterSearch(g,z.id,casualties,rescued);g.phase='verdict';g.nominee=nominee(g);return rec;
+}
+export function operationForecast(g,plan,z=g.zones.find(z=>z.id===g.missionZone)){
+ const tactic=TACTICS.find(t=>t.id===plan);if(!z||!tactic)return null;
+ const sensor=g.sensorBaselines?.[z.id]||z,detection=clamp((sensor.signal+sensor.audio)/2);
+ const route=(g.effects.escapeRoute||g.effects.decoy)===z.id ? .2 : 0;
+ const rate=Math.max(0,Math.min(.92,tactic.casualtyRate+detection/500-route)),population=z.people;
+ const casualties=population?Math.min(population,Math.max(plan==='rush'?1:0,Math.floor(population*rate))):0;
+ return {plan,casualties,remaining:population-casualties,percent:population?Math.round((population-casualties)/population*100):0};
 }
 export function averages(g){return ['player',...g.council.map(c=>c.id)].map(target=>{const n=g.council.filter(c=>c.id!==target);return {target,value:Math.round(n.reduce((s,c)=>s+(g.suspicion[c.id][target]||0),0)/Math.max(1,n.length))};});}
 export function nominee(g){return averages(g).sort((a,b)=>b.value-a.value||a.target.localeCompare(b.target))[0];}
@@ -146,11 +161,40 @@ function rollOffers(g){let pool=g.demo?MODULES.slice(0,0).concat(MODULES.filter(
 export function reroll(g){requirePhase(g,'reward');if(g.mask!=='gambler'||g.rerolled||g.demo)throw new GameError('다시 뽑기는 도박사 가면으로 하루 한 번 가능합니다.');g.rerolled=true;rollOffers(g);}
 export function takeReward(g,id){requirePhase(g,'reward');if(!g.offers.includes(id))throw new GameError('제시된 모듈을 선택하세요.');g.modules.push(id);evidence(g,'module',`${MODULES.find(m=>m.id===id).name} 획득`);if(g.pendingReplacement){replaceMember(g,g.pendingReplacement,g.day+1);g.pendingReplacement=null;}g.day++;startDay(g);}
 function replaceMember(g,id,joinedDay=g.day){const index=g.council.findIndex(c=>c.id===id);if(index<0)return;const next=COUNCIL.find(c=>!g.council.some(x=>x.id===c.id))||COUNCIL.find(c=>c.id===id);g.council[index]={...next,joinedDay,generation:(g.council[index].generation||0)+1};delete g.suspicion[id];for(const row of Object.values(g.suspicion))delete row[id];initMatrix(g);evidence(g,'replacement',`${nameOf(g,next.id)} 신규 회선 배정. 이전 기억 미승계.`,{member:next.id});}
-export function useModule(g,id,target){requirePhase(g,'report','discussion','operation');const idx=g.modules.indexOf(id);if(idx<0)throw new GameError('보유하지 않은 모듈입니다.');const m=MODULES.find(m=>m.id===id);if(m.target==='member'&&!g.council.some(c=>c.id===target))throw new GameError('대상 위원을 선택하세요.');if(m.target==='zone'&&!g.zones.some(z=>z.id===target))throw new GameError('대상 구역을 선택하세요.');
- if(['noise','budget','radio','gaze','read','silence','revive'].includes(id)&&g.effects[id])throw new GameError('이미 오늘 적용 중입니다.');if(id==='revive'&&g.revived)throw new GameError('한 판에 한 번만 재인증할 수 있습니다.');
+export function moduleProblem(g,id,target,{ignoreTarget=false}={}){
+ if(!['report','discussion','operation'].includes(g.phase))return '보고·토론·작전 단계에서 사용할 수 있습니다.';
+ const m=MODULES.find(m=>m.id===id);if(!m||!g.modules.includes(id))return '보유하지 않은 모듈입니다.';
+ if(['noise','budget','radio','gaze','read','silence','revive'].includes(id)&&g.effects[id])return '이미 적용 중인 효과입니다. 카드는 보관됩니다.';
+ if(id==='revive'&&g.revived)return '재인증은 한 판에 한 번만 가능합니다.';
+ if(id==='forge'&&!g.records.some(r=>r.day===g.day&&r.type==='proposal'&&r.author==='player'))return '오늘 내 이름으로 남은 제안이 없습니다. 발언을 먼저 제출하세요.';
+ if(id==='proxy'&&(g.phase==='operation'||g.turns>=2))return '오늘 남은 발언이 없어 대역을 사용할 수 없습니다.';
+ if(id==='proxy'&&g.effects.proxy)return '다음 발언의 대역이 이미 지정됐습니다. 발언 후 사용하세요.';
+ if(id==='sensor'&&(g.phase==='operation'||g.turns>=2))return '조작된 보고로 설득할 발언이 남아 있지 않습니다. 다음 날 사용하세요.';
+ if(id==='silence'&&(g.turns>0||g.phase==='operation'))return '침묵권은 첫 발언 전에 사용하세요.';
+ if(!ignoreTarget){
+  if(m.target==='member'&&!g.council.some(c=>c.id===target))return '대상 위원을 선택하세요.';
+  if(m.target==='zone'&&!g.zones.some(z=>z.id===target))return '대상 구역을 선택하세요.';
+  if(['sensor','decoy'].includes(id)){
+   if(target!==g.missionZone)return '오늘의 확정 현장에만 사용할 수 있습니다.';
+   const z=g.zones.find(z=>z.id===target);if(z.searched||!z.people)return '작전이 가능한 현장이 아닙니다.';
+   if(id==='sensor'&&(g.sensorBaselines?.[target]||z.signal===98))return '이미 조작된 센서입니다. 카드는 보관됩니다.';
+   if(id==='decoy'&&(g.effects.escapeRoute||g.effects.decoy)===target)return '이미 비상 통로가 열려 있습니다. 카드는 보관됩니다.';
+  }
+ }
+ return null;
+}
+export function moduleOptions(g){return Object.fromEntries([...new Set(g.modules)].map(id=>{
+ const m=MODULES.find(m=>m.id===id);let reason=moduleProblem(g,id,undefined,{ignoreTarget:true});
+ const candidates=m?.target==='member'?g.council.map(c=>c.id):m?.target==='zone'?g.zones.map(z=>z.id):[];
+ const targets=candidates.filter(target=>!moduleProblem(g,id,target));
+ if(!reason&&m?.target&&!targets.length)reason=moduleProblem(g,id,g.missionZone)||'사용 가능한 대상이 없습니다.';
+ return [id,{usable:!reason,reason,targets}];
+}));}
+export function useModule(g,id,target){requirePhase(g,'report','discussion','operation');const problem=moduleProblem(g,id,target);if(problem)throw new GameError(problem);const idx=g.modules.indexOf(id),m=MODULES.find(m=>m.id===id);
+ const suspicionBefore=structuredClone(g.suspicion);
  let alteredProposal=null;if(id==='forge'){const p=[...g.records].reverse().find(r=>r.day===g.day&&r.type==='proposal'&&r.author==='player');if(!p)throw new GameError('오늘 내 제안을 먼저 제출한 뒤 기록을 위조하세요.');p.author=target;p.forged=true;alteredProposal=p.id;}
  if(id==='proxy'){if(g.phase==='operation'||g.turns>=2)throw new GameError('대역은 오늘 발언을 제출하기 전에 사용하세요.');g.effects.proxy=target;}
- if(id==='sensor'){g.zones.find(z=>z.id===target).signal=98;const signal=g.records.find(r=>r.id===g.reportId)?.signals?.find(s=>s.id===target);if(signal)signal.signal=98;}
+ if(id==='sensor'){const z=g.zones.find(z=>z.id===target);g.sensorBaselines??={};g.sensorBaselines[target]={signal:z.signal,audio:z.audio};z.signal=98;const signal=g.records.find(r=>r.id===g.reportId)?.signals?.find(s=>s.id===target);if(signal)signal.signal=98;}
  if(id==='decoy'){g.effects.escapeRoute=target;}
  const rec=evidence(g,'module',`${m.name} 사용`,{module:id,target:target||null});
  if(id==='discord'){const other=g.council.find(c=>c.id!==target).id;change(g,other,target,16,'상호 검증 기록의 불일치',rec.id);change(g,target,other,16,'상호 검증 기록의 불일치',rec.id);}
@@ -159,7 +203,7 @@ export function useModule(g,id,target){requirePhase(g,'report','discussion','ope
  g.statusEffects??=[];
  const affectedMembers=m.target==='member'?(id==='discord'?[target,g.council.find(c=>c.id!==target)?.id].filter(Boolean):[target]):[null];
  for(const memberId of affectedMembers)g.statusEffects.push({module:id,label:m.name,owner:memberId?'member':'player',memberId:memberId||null,target:target||null,targetName:m.target==='zone'?g.zones.find(z=>z.id===target)?.name||null:null,day:g.day,expires:id==='revive'?'run':id==='proxy'?'speech':'day'});
- g.modules.splice(idx,1);g.usedModules.push(id);g.lastModuleUse={id,target:target||null,owner:m.target==='member'?'member':'player',memberIds:affectedMembers.filter(Boolean),day:g.day,record:rec.id,...(id==='forge'?{proposal:alteredProposal}:{} )};
+ g.modules.splice(idx,1);g.usedModules.push(id);g.lastModuleUse={id,target:target||null,owner:m.target==='member'?'member':'player',memberIds:affectedMembers.filter(Boolean),day:g.day,record:rec.id,changes:Object.entries(g.suspicion).flatMap(([observer,row])=>Object.entries(row).filter(([subject,value])=>value!==suspicionBefore[observer]?.[subject]).map(([subject,value])=>({observer,target:subject,before:suspicionBefore[observer][subject],after:value,delta:value-suspicionBefore[observer][subject]}))),...(id==='forge'?{proposal:alteredProposal}:{} )};
 }
 function endingTitle(why,ratio){return why==='disposed'?'잠입 발각':why==='abandoned'?'작전 중단':ratio>=.7?'대규모 탈출 성공':ratio>=.4?'탈출 성공':'탈출 실패';}
 export function endGame(g,why){g.phase='ended';const alive=living(g);const exitRisk=g.exitRisk??g.patrol??0;g.rescued=Math.min(g.total,g.rescued+(why==='escape'?Math.min(alive,Math.floor(alive*Math.max(0,1-exitRisk+(g.eveProtected?0.15:0)))):0));const ratio=g.rescued/g.total;g.ending={why,title:endingTitle(why,ratio),ratio,success:why==='escape'&&ratio>=.4,day:g.day};g.modules=[];g.effects={};g.statusEffects=[];g.reviveArmed=false;evidence(g,'ending',`${g.rescued}/${g.total}명 탈출. ${g.ending.title}`);storyEnding(g,why);return g;}
@@ -167,4 +211,4 @@ export function abandon(g){if(g.phase==='ended')throw new GameError('이미 종�
 export function nameOf(g,id){return id==='player'?'당신':g.council.find(c=>c.id===id)?.name||id;}
 export function openArchive(g){requirePhase(g,'report','discussion','operation','verdict','reward');if(g.mask!=='scribe'||g.archiveUsed)throw new GameError('서기 기록 열람은 판마다 한 번입니다.');g.archiveUsed=true;evidence(g,'archive','서기가 공식 발의 기록을 열람함');}
 export function sensorFacts(g){const rows=g.zones.map(({id,signal,audio,cost})=>({id,signal,audio,cost,deviation:Math.abs(signal-audio)}));const extreme=(key,fn)=>rows.filter(r=>r[key]===fn(...rows.map(r=>r[key]))).map(r=>r.id);return {rows,highestSignal:extreme('signal',Math.max),lowestSignal:extreme('signal',Math.min),largestDeviation:extreme('deviation',Math.max),lowestCost:extreme('cost',Math.min)};}
-export function publicGame(g){const out=structuredClone(g);out.story=publicStory(g);if(g.phase!=='ended'&&!(g.mask==='scribe'&&g.archiveUsed))out.records=out.records.filter(r=>r.day===g.day);if(out.phase==='ended'&&out.ending){out.ending.title=endingTitle(out.ending.why,out.ending.ratio);out.records=out.records.map(r=>r.type==='ending'?{...r,text:`${out.rescued}/${out.total}명 탈출. ${out.ending.title}`}:r);if(out.story)out.story.entries=out.story.entries.map(e=>e.kind==='ending'?{...e,text:e.text.replaceAll('가면이 폐기되며','정체가 발각되며').replaceAll('가면이 벗겨졌다','정체가 발각됐다').replaceAll('회선을 닫으며','작전을 중단하며')}:e);}delete out.seed;delete out.claims;delete out.evaluated;delete out.completed;delete out.radioZone;delete out.proposedZone;out.zones=out.zones.map(z=>({...z,people:g.phase==='ended'||g.effects.radio||z.id===g.missionZone||z.searched?z.people:null}));out.alive=living(g);delete out.averages;out.prediction=g.effects.gaze?nominee(g):null;out.council=out.council.map(c=>({...c,suspicion:g.suspicion[c.id].player,viewOfNominee:g.nominee&&c.id!==g.nominee.target?g.suspicion[c.id][g.nominee.target]??null:null,reason:g.reasons[c.id]||{text:'초기 회선 검증',delta:0},preference:g.effects.read||['verdict','reward','ended'].includes(g.phase)?g.preferences[c.id]:null}));delete out.preferences;delete out.suspicion;return out;}
+export function publicGame(g){const out=structuredClone(g);out.story=publicStory(g);if(g.phase!=='ended'&&!(g.mask==='scribe'&&g.archiveUsed))out.records=out.records.filter(r=>r.day===g.day);if(out.phase==='ended'&&out.ending){out.ending.title=endingTitle(out.ending.why,out.ending.ratio);out.records=out.records.map(r=>r.type==='ending'?{...r,text:`${out.rescued}/${out.total}명 탈출. ${out.ending.title}`}:r);if(out.story)out.story.entries=out.story.entries.map(e=>e.kind==='ending'?{...e,text:e.text.replaceAll('가면이 폐기되며','정체가 발각되며').replaceAll('가면이 벗겨졌다','정체가 발각됐다').replaceAll('회선을 닫으며','작전을 중단하며')}:e);}delete out.sensorBaselines;out.moduleOptions=moduleOptions(g);out.operationForecasts=TACTICS.map(t=>operationForecast(g,t.id));delete out.seed;delete out.claims;delete out.evaluated;delete out.completed;delete out.radioZone;delete out.proposedZone;out.zones=out.zones.map(z=>({...z,people:g.phase==='ended'||g.effects.radio||z.id===g.missionZone||z.searched?z.people:null}));out.alive=living(g);delete out.averages;out.prediction=g.effects.gaze?nominee(g):null;out.council=out.council.map(c=>({...c,suspicion:g.suspicion[c.id].player,viewOfNominee:g.nominee&&c.id!==g.nominee.target?g.suspicion[c.id][g.nominee.target]??null:null,reason:g.reasons[c.id]||{text:'초기 회선 검증',delta:0},preference:g.effects.read||['verdict','reward','ended'].includes(g.phase)?g.preferences[c.id]:null}));delete out.preferences;delete out.suspicion;return out;}

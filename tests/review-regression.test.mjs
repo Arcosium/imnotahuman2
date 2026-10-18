@@ -12,10 +12,10 @@ const ai=()=>new GameAI({dataDir:'/unused',recordUsage:()=>{},available:()=>true
 test('위조는 공식 발의자를 바꾸며 프롬프트·조회 DTO에는 내부 표시가 없음',()=>{
  const g=make(),record=speech(g);g.modules=['forge'];e.useModule(g,'forge','hound');record.privateSecret='hidden';record.forged=true;
  const official=councilRecords(g).find(r=>r.id===record.id);assert.equal(official.author,'hound');assert.equal(official.forged,undefined);assert.equal(official.privateSecret,undefined);assert.equal(JSON.stringify(councilContext(g)).includes('hidden'),false);assert.ok(!councilRecords(g).some(r=>r.type==='module'));
- g.day=2;g.modules=['forge'];assert.throws(()=>e.useModule(g,'forge','audit'),/오늘 내 제안/);assert.deepEqual(g.modules,['forge']);
+ g.day=2;g.modules=['forge'];assert.throws(()=>e.useModule(g,'forge','audit'),/오늘 내/);assert.deepEqual(g.modules,['forge']);
 });
 test('가짜 센서는 현재 보고서와 AI 관측값에 일치하고 지난 보고서를 보존',()=>{
- const g=make(),old=structuredClone(g.records[0]);old.id='old';old.day=0;g.records.unshift(old);g.modules=['sensor'];e.useModule(g,'sensor','plant');const ctx=councilContext(g);assert.equal(ctx.zones.find(z=>z.id==='plant').signal,98);assert.equal(ctx.records.find(r=>r.id===g.reportId).signals.find(z=>z.id==='plant').signal,98);assert.notEqual(old.signals.find(z=>z.id==='plant').signal,98);
+ const g=make(),old=structuredClone(g.records[0]);old.id='old';old.day=0;g.records.unshift(old);g.modules=['sensor'];e.useModule(g,'sensor',g.missionZone);const ctx=councilContext(g);assert.equal(ctx.zones.find(z=>z.id===g.missionZone).signal,98);assert.equal(ctx.records.find(r=>r.id===g.reportId).signals.find(z=>z.id===g.missionZone).signal,98);assert.notEqual(old.signals.find(z=>z.id===g.missionZone).signal,98);
 });
 test('공동 표결에 존재하지 않는 발의자를 지정하지 않음',()=>{
  const g=make();e.beginDiscussion(g);e.addSpeech(g,'전체 센서를 점검한 뒤 투표하겠습니다.');e.prepareOperation(g);for(const c of g.council)g.preferences[c.id]='rush';const row=e.executeSearch(g,'rush');assert.equal(row.author,'player');assert.equal(g.suspicion.audit.hound,23);assert.equal(g.suspicion.audit.player,38);assert.equal(g.operation.suspicionBefore,24);assert.equal(g.operation.suspicionAfter,38);

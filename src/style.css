@@ -1010,3 +1010,15 @@ body:has(dialog[open]){overflow:hidden}
  .battle-stage-art>.battle-chat-drawer{max-height:0;transform:none}
  .battle-stage-art>.battle-chat-drawer.expanded{max-height:calc(100dvh - 290px);transform:none}
 }
+
+/* Card effects stay readable above the battle scene. */
+.discussion-game,.discussion-game>.battle-stage-art{overflow:clip}
+.module-result p,.module-intel p{line-height:1.5;margin:0 0 14px}
+.module-result b,.module-intel b{color:var(--text,#eee7d7)}
+.module-intel{margin:20px 0}.module-intel:empty{display:none}
+.module-intel h3{font-size:18px;margin:18px 0 12px}
+.battle-evidence-reason{display:block;margin-top:8px;font-size:12px;line-height:1.4;color:#d8b675}
+.briefing-modules{margin:10px 0;min-height:40px}
+.module-inspect-effect{font-family:'Noto Sans KR',Arial,sans-serif;line-height:1.5}
+.module-inspect-modal .modal-head h2,.module-inspect-card-caption small,.module-inspect-modal .module-target label{font-size:12px;font-family:'Noto Sans KR',Arial,sans-serif;letter-spacing:0}
+@media(max-width:620px){.module-inspect-layout{grid-template-columns:96px minmax(0,1fr);gap:12px}.module-inspect-effect{font-size:14px}.module-target-members{grid-template-columns:1fr}.module-target-member{font-size:13px;min-height:44px}.module-inspect-use{font-size:14px}.battle-hud-controls{gap:6px}}

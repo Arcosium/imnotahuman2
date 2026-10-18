@@ -21,17 +21,17 @@ export const TACTICS = [
 ];
 export const MODULES = [
   { id:'noise', name:'잡음 주입', family:'위장', desc:'오늘 발언 때문에 오르는 의심을 절반으로 줄입니다.', target:false },
-  { id:'proxy', name:'대역', family:'위장', desc:'다음 제안의 발의자를 선택한 위원으로 바꿉니다.', target:'member' },
-  { id:'forge', name:'기록 위조', family:'위장', desc:'오늘 가장 최근 내 제안 1건의 발의자를 다른 위원으로 바꿉니다.', target:'member' },
+  { id:'proxy', name:'대역', family:'위장', desc:'다음 제안 1건의 발의자와 발언 평가 대상을 선택한 위원으로 바꿉니다.', target:'member' },
+  { id:'forge', name:'기록 위조', family:'위장', desc:'오늘 가장 최근 내 제안 1건의 발의자를 바꿔 이후 작전의 발의 책임을 옮깁니다. 이미 받은 발언 의심과 내 투표 책임은 남습니다.', target:'member' },
   { id:'radio', name:'무전 증폭', family:'정보', desc:'오늘 모든 거점의 생존 인원을 확인합니다.', target:false },
   { id:'gaze', name:'시선 추적', family:'정보', desc:'현재 의심으로 오늘의 심의 대상을 예측합니다.', target:false },
   { id:'read', name:'표 읽기', family:'정보', desc:'오늘 수색 투표 전 위원의 표 분포를 확인합니다.', target:false },
-  { id:'sensor', name:'가짜 센서', family:'선동', desc:'확정 현장의 탐지 신호를 조작해 위원들의 작전 판단을 흔듭니다.', target:'zone' },
+  { id:'sensor', name:'가짜 센서', family:'선동', desc:'오늘 확정 현장의 보고 신호를 98로 바꿉니다. 이후 발언에서 조작된 보고로 설득할 수 있으며 실제 현장 피해는 늘지 않습니다.', target:'zone' },
   { id:'budget', name:'예산 교란', family:'선동', desc:'오늘 발언 의심 변화를 최대 2로, 수색 결과 책임을 70%로 줄입니다.', target:false },
   { id:'discord', name:'이간', family:'선동', desc:'선택한 위원과 다른 위원 사이의 의심을 16 올립니다.', target:'member' },
   { id:'revive', name:'재인증 위조', family:'생존', desc:'장착하면 폐기 판결 1회를 무효화합니다. 한 판에 한 번.', target:false },
-  { id:'silence', name:'침묵권', family:'생존', desc:'오늘 발언 없이도 책임 추궁을 받지 않습니다.', target:false },
-  { id:'decoy', name:'비상 통로', family:'생존', desc:'선택한 구역에 비상 통로를 열어 작전 피해를 줄입니다.', target:'zone' },
+  { id:'silence', name:'침묵권', family:'생존', desc:'오늘 발언 없이 작전 표결로 넘어갑니다. 작전에서 내 표가 채택되면 지지 책임은 남습니다.', target:false },
+  { id:'decoy', name:'비상 통로', family:'생존', desc:'오늘 확정 현장에 비상 통로를 열어 작전 피해율을 20%p 낮춥니다.', target:'zone' },
 ];
 export const MASKS = [
   { id:'scribe', name:'서기', desc:'한 판에 한 번, 그날 나온 위원회 제안 기록을 전부 확인합니다.', story:'무결 이전, 시립도서관에서 사라진 사람들의 이름을 장부에 옮겨 적던 사서였다. 도시가 봉쇄된 날에도 마지막 대피 기록을 외워 살아남았다. 지금은 위원회의 공식 기록 사이에서 지워진 이름을 찾는다.', unlock:0 },

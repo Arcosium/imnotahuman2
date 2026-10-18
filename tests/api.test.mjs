@@ -8,7 +8,7 @@ import {randomBytes} from 'node:crypto';
 
 test('HTTP 인증, 시연 격리, 권한 상승 방지, 동시 요청과 시연 완주',{timeout:40000},async()=>{
  const base=process.env.TEST_PRIVATE_DIR||'/home/arcosium/vault/imnotahuman2/tests';mkdirSync(base,{recursive:true});const dir=mkdtempSync(join(base,'api-'));const store=new Store(dir);const password=randomBytes(16).toString('hex');await store.createUser('demo',password,'demo');store.db.close();
- const port=18682;const child=spawn(process.execPath,['server/index.mjs'],{cwd:process.cwd(),env:{...process.env,PORT:String(port),DATA_DIR:dir,AI_OFFLINE:'1'},stdio:'pipe'});let ready='';child.stdout.on('data',s=>ready+=s);child.stderr.on('data',()=>{});
+ const port=18682;const child=spawn(process.execPath,['server/index.mjs'],{cwd:process.cwd(),env:{...process.env,PORT:String(port),DATA_DIR:dir,AI_OFFLINE:'1',ENABLE_HACKATHON_DEMO:'1'},stdio:'pipe'});let ready='';child.stdout.on('data',s=>ready+=s);child.stderr.on('data',()=>{});
  const req=async(path,body,cookie='',headers={})=>{const r=await fetch(`http://127.0.0.1:${port}/api/${path}`,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',cookie,...headers},body:body?JSON.stringify(body):undefined});return {status:r.status,body:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};};
  try{for(let i=0;i<100&&!ready.includes('listening');i++)await new Promise(r=>setTimeout(r,50));assert.match(ready,/listening/);
  assert.equal((await req('game')).status,401);assert.equal((await req('register',{username:'demo',password})).status,400);
